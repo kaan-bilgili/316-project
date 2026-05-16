@@ -43,3 +43,5 @@ class Configuration:
             run_command=data.get("run_command", "./main.exe"),
             is_interpreted=data.get("is_interpreted", False),
         )
+        configuration.validate()
+        return configuration
