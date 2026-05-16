@@ -1,0 +1,6 @@
+{
+    "name": "hhghk",
+    "compiler_path": "gcc",
+    "source_filename": "main.c",
+    "compiler_args": "-o main.exe"
+}
