@@ -7,11 +7,6 @@ from model.student_result import StudentResult
 class Runner:
 
     def run(self, student_dir: str, arguments: str, configuration) -> StudentResult:
-        """
-        Runs the compiled executable with the given arguments.
-        NOTE: configuration parameter will be implemented 
-        Expected fields: run_command (e.g. "./main", "java main", "python main.py")
-        """
         student_id = os.path.basename(student_dir)
         command = f"{configuration.run_command} {arguments}".strip()
 
