@@ -12,7 +12,7 @@ class configuration_dialog:
         self.repository = repository or ConfigurationRepository()
 
         self.root.title("Configurations")
-        self.root.geometry("620x320")
+        self.root.geometry("620x390")
 
         self.list_frame = tk.Frame(root)
         self.list_frame.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10)
@@ -46,6 +46,19 @@ class configuration_dialog:
         self.compiler_args_label.pack(anchor="w", pady=(8, 0))
         self.compiler_args_entry = tk.Entry(self.form_frame, width=45)
         self.compiler_args_entry.pack(fill=tk.X)
+
+        self.run_command_label = tk.Label(self.form_frame, text="Run Command:")
+        self.run_command_label.pack(anchor="w", pady=(8, 0))
+        self.run_command_entry = tk.Entry(self.form_frame, width=45)
+        self.run_command_entry.pack(fill=tk.X)
+
+        self.is_interpreted_var = tk.BooleanVar(value=False)
+        self.is_interpreted_checkbutton = tk.Checkbutton(
+            self.form_frame,
+            text="Interpreted language",
+            variable=self.is_interpreted_var,
+        )
+        self.is_interpreted_checkbutton.pack(anchor="w", pady=(8, 0))
 
         self.button_frame = tk.Frame(self.form_frame)
         self.button_frame.pack(anchor="e", pady=15)
@@ -81,6 +94,8 @@ class configuration_dialog:
             compiler_path="gcc",
             source_filename="main.c",
             compiler_args="-o main.exe",
+            run_command="./main.exe",
+            is_interpreted=False,
         )
 
     def load_selected_configuration(self, event=None):
@@ -102,6 +117,8 @@ class configuration_dialog:
             compiler_path=configuration.compiler_path,
             source_filename=configuration.source_filename,
             compiler_args=configuration.compiler_args,
+            run_command=configuration.run_command,
+            is_interpreted=configuration.is_interpreted,
         )
 
     def save_configuration(self):
@@ -111,6 +128,8 @@ class configuration_dialog:
                 compiler_path=self.compiler_path_entry.get().strip(),
                 source_filename=self.source_filename_entry.get().strip(),
                 compiler_args=self.compiler_args_entry.get().strip(),
+                run_command=self.run_command_entry.get().strip(),
+                is_interpreted=self.is_interpreted_var.get(),
             )
             self.repository.save(configuration)
         except ValueError as error:
@@ -143,7 +162,15 @@ class configuration_dialog:
         self.new_configuration()
         messagebox.showinfo("Configuration Deleted", "Configuration deleted successfully.")
 
-    def _set_form_values(self, name, compiler_path, source_filename, compiler_args):
+    def _set_form_values(
+        self,
+        name,
+        compiler_path,
+        source_filename,
+        compiler_args,
+        run_command,
+        is_interpreted,
+    ):
         self.name_entry.delete(0, tk.END)
         self.name_entry.insert(0, name)
 
@@ -155,6 +182,11 @@ class configuration_dialog:
 
         self.compiler_args_entry.delete(0, tk.END)
         self.compiler_args_entry.insert(0, compiler_args)
+
+        self.run_command_entry.delete(0, tk.END)
+        self.run_command_entry.insert(0, run_command)
+
+        self.is_interpreted_var.set(is_interpreted)
 
     def _select_configuration(self, name):
         for index in range(self.config_listbox.size()):
