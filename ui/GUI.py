@@ -361,6 +361,11 @@ class IAECompleteGUI:
         self.btn_open.pack(side="left", padx=4)
         self._register(self.btn_open, "open_project")
 
+        self.btn_manage_configs = self._create_button(toolbar, width=140, height=34)
+        self.btn_manage_configs.pack(side="left", padx=4)
+        self._register(self.btn_manage_configs, "manage_configs")
+
+
         self.status_lbl = ctk.CTkLabel(
             toolbar,
             text_color=TEXT_COLOR,

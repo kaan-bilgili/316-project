@@ -8,7 +8,7 @@ from service.report_generator import ReportGenerator
 from ui.GUI import IAECompleteGUI
 from ui.configuration_builder import build_configuration, config_to_prog_lang
 from ui.dialogs import NewProjectDialog
-
+from ui.config_manager_dialog import ConfigManagerDialog
 
 class IAELogicController:
     def __init__(self, root):
@@ -19,6 +19,7 @@ class IAELogicController:
         self.evaluation_service = EvaluationService()
         self.report_generator = ReportGenerator()
 
+        
         self.ui.btn_create.configure(command=self.create_project)
         self.ui.btn_open.configure(command=self.open_project)
         self.ui.btn_clear_db.configure(command=self.clear_history)
@@ -27,12 +28,16 @@ class IAELogicController:
         self.ui.btn_output.configure(command=self.select_output_file)
         self.ui.btn_run.configure(command=self.start_evaluation_process)
         self.ui.btn_export.configure(command=self.export_report)
+        self.ui.btn_manage_configs.configure(command=self.manage_configurations)
 
     def browse_compiler(self):
         path = filedialog.askopenfilename(title=self.ui.tr("dlg_compiler"))
         if path:
             self.ui.path_entry.delete(0, "end")
             self.ui.path_entry.insert(0, path)
+
+    def manage_configurations(self):
+        ConfigManagerDialog(self.root, self.config_repo, self.ui.tr)
 
     def select_zip_folder(self):
         path = filedialog.askdirectory(title=self.ui.tr("dlg_zip_folder"))
