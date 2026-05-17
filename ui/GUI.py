@@ -336,6 +336,7 @@ class IAECompleteGUI:
             self.tr("select_prog_lang"),
             "C (GCC)",
             "Java (JDK)",
+            "C++ (G++)",
             "Python (Interpreter)",
         ]
 

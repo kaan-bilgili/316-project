@@ -21,6 +21,12 @@ PROG_LANG_PRESETS = {
         "run_command": "python main.py",
         "is_interpreted": True,
     },
+    "C++ (G++)": {
+        "source_filename": "main.cpp",
+        "compiler_args": "-o main.exe",
+        "run_command": "main.exe" if sys.platform == "win32" else "./main.exe",
+        "is_interpreted": False,
+    },
 }
 
 
@@ -35,6 +41,8 @@ def config_to_prog_lang(config):
         return "Python (Interpreter)"
     if config.source_filename.endswith(".java"):
         return "Java (JDK)"
+    if config.source_filename.endswith(".cpp"): 
+        return "C++ (G++)"                        
     return "C (GCC)"
 
 
