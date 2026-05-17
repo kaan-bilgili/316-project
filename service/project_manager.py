@@ -71,3 +71,13 @@ class ProjectManager:
         if self._repo is None:
             return []
         return self._repo.load_all()
+
+    def clear_results(self) -> None:
+        """Removes all student results for the current project."""
+        if self._current_project is None or self._db is None:
+            return
+        self._db.conn.execute(
+            "DELETE FROM student_result WHERE project_id = ?",
+            (self._current_project.id,),
+        )
+        self._db.conn.commit()

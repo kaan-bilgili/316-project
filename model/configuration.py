@@ -1,4 +1,11 @@
+import sys
 from dataclasses import dataclass
+
+
+def _normalize_run_command(command: str) -> str:
+    if sys.platform == "win32" and command.startswith("./"):
+        return command[2:]
+    return command
 
 
 @dataclass
@@ -35,12 +42,15 @@ class Configuration:
     @staticmethod
     def from_dict(data: dict) -> "Configuration":
         """Creates a Configuration instance from a JSON dict."""
+        default_run = "main.exe" if sys.platform == "win32" else "./main.exe"
         configuration = Configuration(
             name=data["name"],
             compiler_path=data.get("compiler_path", "gcc"),
             source_filename=data.get("source_filename", "main.c"),
             compiler_args=data.get("compiler_args", "-o main.exe"),
-            run_command=data.get("run_command", "./main.exe"),
+            run_command=_normalize_run_command(
+                data.get("run_command", default_run)
+            ),
             is_interpreted=data.get("is_interpreted", False),
         )
         configuration.validate()
