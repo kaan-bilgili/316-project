@@ -23,8 +23,12 @@ class ConfigurationRepository:
     def update(self, old_name: str, configuration: Configuration) -> None:
         """Updates an existing configuration. Handles name changes."""
         self._validate_name(old_name)
+        configuration.validate()
+        self._validate_name(configuration.name)
+
         if old_name != configuration.name:
             self.delete(old_name)
+
         self.save(configuration)
 
     def load(self, name: str) -> Optional[Configuration]:

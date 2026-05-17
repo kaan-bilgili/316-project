@@ -1,0 +1,8 @@
+{
+    "name": "C Default",
+    "compiler_path": "gcc",
+    "source_filename": "main.c",
+    "compiler_args": "-o main.exe",
+    "run_command": "main.exe",
+    "is_interpreted": false
+}
