@@ -9,7 +9,7 @@ class SubmissionStatus(Enum):
     RUNTIME_ERROR = "RUNTIME_ERROR"
     WRONG_OUTPUT = "WRONG_OUTPUT"
 
-class error_handler:
+class ErrorHandler:
     def __init__(self,timeout_seconds=5):
         self.timeout_seconds = timeout_seconds
 
