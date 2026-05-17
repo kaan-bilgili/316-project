@@ -1,4 +1,3 @@
-# service/compiler.py
 import subprocess
 import os
 from model.student_result import StudentResult
@@ -9,10 +8,15 @@ class Compiler:
     def compile(self, student_dir: str, configuration) -> StudentResult:
         """
         Compiles the student's source code using the given configuration.
-        NOTE: configuration parameter will be implemented.
-        Expected fields: compiler_path, source_filename, compiler_args
+        Skips compilation for interpreted languages (e.g. Python).
+        Expected fields: compiler_path, source_filename, compiler_args, is_interpreted
         """
         student_id = os.path.basename(student_dir)
+
+        # skip compilation for interpreted languages
+        if configuration.is_interpreted:
+            return StudentResult(student_id=student_id, status="compiled")
+
         source_file = os.path.join(student_dir, configuration.source_filename)
 
         if not os.path.exists(source_file):

@@ -11,7 +11,25 @@ class ProjectRepository:
         self.db = db
 
     def save(self, project: Project) -> int:
-        """Inserts a new project into the database and returns its id."""
+        """Inserts or updates a project and returns its id."""
+        data = project.to_dict()
+        if project.id is not None:
+            self.db.conn.execute(
+                """
+                UPDATE project
+                SET name = :name,
+                    description = :description,
+                    configuration_name = :configuration_name,
+                    submissions_dir = :submissions_dir,
+                    expected_output_path = :expected_output_path,
+                    created_at = :created_at
+                WHERE id = :id
+                """,
+                {**data, "id": project.id},
+            )
+            self.db.conn.commit()
+            return project.id
+
         cursor = self.db.conn.execute(
             """
             INSERT INTO project 
@@ -19,7 +37,7 @@ class ProjectRepository:
             VALUES 
                 (:name, :description, :configuration_name, :submissions_dir, :expected_output_path, :created_at)
             """,
-            project.to_dict()
+            data,
         )
         self.db.conn.commit()
         return cursor.lastrowid

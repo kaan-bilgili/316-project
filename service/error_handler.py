@@ -27,7 +27,7 @@ class error_handler:
                 timeout=self.timeout_seconds,
                 check=True
             )
-            return self._format_results(
+            return self._format_result(
                 status=SubmissionStatus.SUCCESS,
                 log_details= "Process completed successfully.",
                 stdout=process.stdout
