@@ -6,14 +6,14 @@ from model.student_result import StudentResult
 
 class Runner:
 
-    def run(self, student_dir: str, arguments: str, configuration) -> StudentResult:
+    def run(self, student_dir: str, arguments: str, configuration, timeout: int = 10) -> StudentResult:
         student_id = os.path.basename(student_dir)
         command = f"{configuration.run_command} {arguments}".strip()
 
         try:
             result = subprocess.run(
                 command, shell=True, capture_output=True,
-                text=True, timeout=10, cwd=student_dir
+                text=True, timeout=timeout, cwd=student_dir
             )
 
             if result.returncode == 0:
