@@ -29,6 +29,8 @@ class EvaluationService:
             student_dir = os.path.join(zip_folder, name)
             if not os.path.isdir(student_dir):
                 continue
+            if not name.isdigit():
+                continue
 
             compile_result = self.compiler.compile(student_dir, configuration)
             if compile_result.status == "compile_error":
