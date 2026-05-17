@@ -184,7 +184,7 @@ TRANSLATIONS = {
         "config_run_command": "Çalıştırma Komutu:",
         "config_is_interpreted": "Yorumlanan Dil (derleme adımını atla)",
         "err_config_fields": "Ad, Derleyici Yolu ve Kaynak Dosya Adı zorunludur.",
-        "config_saved": "Kaydet.",
+        "config_saved": "Kaydet",
     },
 }
 
