@@ -27,7 +27,7 @@ class NewProjectDialog(ctk.CTkToplevel):
         self.config_menu = ctk.CTkOptionMenu(
             form,
             variable=self.config_var,
-            values=config_names or [""],
+            values=config_names if config_names else ["No Configurations"],
             width=260,
         )
         self.config_menu.grid(row=2, column=1, sticky="ew", pady=(pad, 4))
@@ -39,6 +39,10 @@ class NewProjectDialog(ctk.CTkToplevel):
             actions, text=ui.tr("new_project"), command=self._submit
         ).pack(side="right", padx=(8, 0))
         ctk.CTkButton(actions, text=ui.tr("cancel"), command=self.destroy).pack(side="right")
+
+        self.name_entry.focus()
+
+        self.bind("<Return>", lambda event: self._submit())
 
     def _row(self, parent, label, row):
         ctk.CTkLabel(parent, text=label, anchor="w").grid(
@@ -57,7 +61,7 @@ class NewProjectDialog(ctk.CTkToplevel):
             return
         description = self.desc_entry.get().strip()
         configuration_name = self.config_var.get().strip()
-        if not configuration_name:
+        if not configuration_name or configuration_name == "No Configurations":
             messagebox.showerror(
                 self.ui.tr("new_project_title"), self.ui.tr("err_config_name")
             )
