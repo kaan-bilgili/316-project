@@ -4,7 +4,7 @@ from service.compiler import Compiler
 from service.output_comparator import OutputComparator
 from service.runner import Runner
 from service.zip_processor import ZipProcessor
-from service.error_handler import SubmissionStatus as ServiceStatus
+from ui.models import SubmissionStatus as ServiceStatus
 from ui.models import SubmissionStatus, ReportEntry
 
 
