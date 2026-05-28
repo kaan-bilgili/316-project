@@ -95,6 +95,8 @@ TRANSLATIONS = {
         "config_is_interpreted": "Interpreted Language (skip compilation)",
         "err_config_fields": "Name, Compiler Path and Source Filename are required.",
         "config_saved": "Save",
+        "import_config": "Import",
+        "export_config": "Export",
     },
     "tr": {
         "app_title": "IAE - Entegre Ödev Ortamı",
@@ -185,6 +187,8 @@ TRANSLATIONS = {
         "config_is_interpreted": "Yorumlanan Dil (derleme adımını atla)",
         "err_config_fields": "Ad, Derleyici Yolu ve Kaynak Dosya Adı zorunludur.",
         "config_saved": "Kaydet",
+        "import_config": "İçe Aktar",
+        "export_config": "Dışa Aktar",
     },
 }
 
