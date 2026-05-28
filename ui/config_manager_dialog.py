@@ -1,19 +1,19 @@
 import customtkinter as ctk
-from tkinter import messagebox
+from tkinter import filedialog, messagebox
 
 from data.configuration_repository import ConfigurationRepository
 from model.configuration import Configuration
 
 
 class ConfigManagerDialog(ctk.CTkToplevel):
-    """Dialog for listing, editing and deleting configurations. Covers Req 4."""
+    """Dialog for listing, editing, deleting, importing and exporting configurations. Covers Req 4 and 5."""
 
     def __init__(self, parent, config_repo: ConfigurationRepository, tr):
         super().__init__(parent)
         self.config_repo = config_repo
         self.tr = tr
         self.title(tr("manage_configs_title"))
-        self.geometry("620x420")
+        self.geometry("680x420")
         self.resizable(False, False)
         self.transient(parent)
         self.grab_set()
@@ -31,6 +31,10 @@ class ConfigManagerDialog(ctk.CTkToplevel):
         ctk.CTkButton(
             btn_frame, text=self.tr("new_config_title"), command=self._new_config
         ).pack(side="left")
+
+        ctk.CTkButton(
+            btn_frame, text=self.tr("import_config"), command=self._import_config
+        ).pack(side="left", padx=(8, 0))
 
         ctk.CTkButton(
             btn_frame, text=self.tr("cancel"), command=self.destroy
@@ -72,6 +76,11 @@ class ConfigManagerDialog(ctk.CTkToplevel):
                 command=lambda c=config: self._delete_config(c),
             ).pack(side="right", padx=(4, 0))
 
+            ctk.CTkButton(
+                row, text=self.tr("export_config"), width=70,
+                command=lambda c=config: self._export_config(c),
+            ).pack(side="right", padx=(4, 0))
+
     def _new_config(self):
         ConfigEditDialog(self, None, self.config_repo, self.tr, self._refresh_list)
 
@@ -87,6 +96,31 @@ class ConfigManagerDialog(ctk.CTkToplevel):
         if confirmed:
             self.config_repo.delete(config.name)
             self._refresh_list()
+
+    def _import_config(self):
+        path = filedialog.askopenfilename(
+            title=self.tr("import_config"),
+            filetypes=[("JSON Files", "*.json")]
+        )
+        if path:
+            try:
+                self.config_repo.import_from_file(path)
+                self._refresh_list()
+            except Exception as exc:
+                messagebox.showerror(self.tr("import_config"), str(exc), parent=self)
+
+    def _export_config(self, config: Configuration):
+        path = filedialog.asksaveasfilename(
+            title=self.tr("export_config"),
+            defaultextension=".json",
+            filetypes=[("JSON Files", "*.json")],
+            initialfile=f"{config.name}.json"
+        )
+        if path:
+            try:
+                self.config_repo.export_to_file(config.name, path)
+            except Exception as exc:
+                messagebox.showerror(self.tr("export_config"), str(exc), parent=self)
 
 
 class ConfigEditDialog(ctk.CTkToplevel):
