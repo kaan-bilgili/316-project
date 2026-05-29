@@ -35,3 +35,9 @@ class Runner:
                 status="runtime_error",
                 error_log="Program execution timed out.",
             )
+        except Exception as e:
+            return StudentResult(
+                student_id=student_id,
+                status="runtime_error",
+                error_log=f"Runtime Error: {str(e)}",
+            )

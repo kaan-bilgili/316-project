@@ -26,46 +26,57 @@ class EvaluationService:
 
         entries = []
         for name in sorted(os.listdir(zip_folder)):
-            student_dir = os.path.join(zip_folder, name)
-            if not os.path.isdir(student_dir):
-                continue
-            if not name.isdigit():
-                continue
+            try:
+                student_dir = os.path.join(zip_folder, name)
+                if not os.path.isdir(student_dir):
+                    continue
+                if not name.isdigit():
+                    continue
 
-            compile_result = self.compiler.compile(student_dir, configuration)
-            if compile_result.status == "compile_error":
-                entries.append(
-                    ReportEntry(
-                        compile_result.student_id,
-                        SubmissionStatus.ERROR,
-                        compile_result.error_log,
+                compile_result = self.compiler.compile(student_dir, configuration)
+                if compile_result.status == "compile_error":
+                    entries.append(
+                        ReportEntry(
+                            compile_result.student_id,
+                            SubmissionStatus.ERROR,
+                            compile_result.error_log,
+                        )
                     )
-                )
-                continue
+                    continue
 
-            run_result = self.runner.run(
-                student_dir, runtime_args, configuration, timeout=timeout
-            )
-            if run_result.status == "runtime_error":
+                run_result = self.runner.run(
+                    student_dir, runtime_args, configuration, timeout=timeout
+                )
+                if run_result.status == "runtime_error":
+                    entries.append(
+                        ReportEntry(
+                            run_result.student_id,
+                            SubmissionStatus.ERROR,
+                            run_result.error_log,
+                        )   
+                    )
+                    continue
+
+                compare = self.output_comparator.compare(
+                    run_result.actual_output, output_path
+                )
                 entries.append(
                     ReportEntry(
                         run_result.student_id,
+                        self._map_service_status(compare["status"]),
+                        compare["log_details"],
+                    )
+                )
+            except Exception as e:
+
+                entries.append(
+                    ReportEntry(
+                        name,
                         SubmissionStatus.ERROR,
-                        run_result.error_log,
+                        f"Unexpected Error: {str(e)}",
                     )
                 )
                 continue
-
-            compare = self.output_comparator.compare(
-                run_result.actual_output, output_path
-            )
-            entries.append(
-                ReportEntry(
-                    run_result.student_id,
-                    self._map_service_status(compare["status"]),
-                    compare["log_details"],
-                )
-            )
 
         return entries
 
