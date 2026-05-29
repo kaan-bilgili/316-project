@@ -1,0 +1,30 @@
+IAE - Integrated Assignment Environment
+User Manual
+
+1. GETTING STARTED
+   Open the application and create a new project or open an existing one.
+
+2. CREATE A PROJECT
+   - Click "New Project"
+   - Enter a project name and description
+   - Select a configuration
+   - Select the student ZIP folder
+   - Select the expected output file
+
+3. MANAGE CONFIGURATIONS
+   - Click "Manage Configs"
+   - Create, edit, delete, import or export configurations
+   - A configuration defines the compiler path, source filename, and run command
+
+4. START EVALUATION
+   - Set the programming language and compiler path
+   - Select the student ZIP folder and expected output file
+   - Click "START EVALUATION"
+   - Results will be displayed in the table below
+
+5. EXPORT REPORT
+   - Click "Export Report" to save results as a .txt file
+
+6. OPEN AN EXISTING PROJECT
+   - Click "Open Project" and select a .db file
+   - Previous results will be loaded automatically

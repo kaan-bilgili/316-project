@@ -233,31 +233,35 @@ class IAECompleteGUI:
         self.theme_selector.pack(side="left", padx=(0, 14))
         self._topbar_menus.append(self.theme_selector)
 
-        self.lbl_help = ctk.CTkLabel(
-            nav, font=self.fonts.caption, text_color=TEXT_COLOR, fg_color="transparent"
-        )
-        self.lbl_help.pack(side="left", padx=(0, 8))
-        self._register(self.lbl_help, "help")
-
-        self.help_var = ctk.StringVar()
-        self.help_selector = self._create_option_menu(
+        self.btn_help = ctk.CTkButton(
             nav,
-            variable=self.help_var,
-            values=[],
-            command=self._on_help_selected,
-            width=120,
+            text="User Manual",
+            width=100,
             height=30,
-            button_color=GLASS_BG_INNER,
-            button_hover_color=GLASS_BORDER_LIGHT,
-            dropdown_fg_color=GLASS_BG,
-            dropdown_hover_color=GLASS_BORDER_LIGHT,
+            fg_color=GLASS_BG_INNER,
+            hover_color=GLASS_BORDER_LIGHT,
             text_color=TEXT_COLOR,
-            dropdown_text_color=TEXT_COLOR,
             font=self.fonts.caption,
-            **self._pill_menu_style(),
+            corner_radius=GLASS_RADIUS_PILL,
+            command=self.show_help,
         )
-        self.help_selector.pack(side="left")
-        self._topbar_menus.append(self.help_selector)
+        self.btn_help.pack(side="left", padx=(0, 8))
+        self._register(self.btn_help, "user_manual")
+
+        self.btn_about = ctk.CTkButton(
+            nav,
+            text="About",
+            width=80,
+            height=30,
+            fg_color=GLASS_BG_INNER,
+            hover_color=GLASS_BORDER_LIGHT,
+            text_color=TEXT_COLOR,
+            font=self.fonts.caption,
+            corner_radius=GLASS_RADIUS_PILL,
+            command=self.show_about,
+        )
+        self.btn_about.pack(side="left")
+        self._register(self.btn_about, "about")
 
     def _style_topbar_menus(self, button_color, hover_color):
         for menu in self._topbar_menus:
@@ -281,13 +285,6 @@ class IAECompleteGUI:
                 self._apply_theme(key)
                 break
 
-    def _on_help_selected(self, choice):
-        if choice == self.tr("user_manual"):
-            self.show_help()
-        elif choice == self.tr("about"):
-            self.show_about()
-        self.help_var.set(self.tr("help"))
-
     def _apply_language(self, lang_code):
         if lang_code not in TRANSLATIONS:
             return
@@ -300,10 +297,6 @@ class IAECompleteGUI:
         self.ui_lang_var.set(LANGUAGES[lang_code])
         self.theme_selector.configure(values=[self._theme_name(k) for k in COLOR_THEMES])
         self.theme_var.set(self._theme_name(self.current_theme))
-        self.help_selector.configure(
-            values=[self.tr("user_manual"), self.tr("about")]
-        )
-        self.help_var.set(self.tr("help"))
 
         current_prog = self.prog_lang_var.get()
         self.lang_cb.configure(values=self._prog_lang_values())
@@ -365,7 +358,6 @@ class IAECompleteGUI:
         self.btn_manage_configs = self._create_button(toolbar, width=140, height=34)
         self.btn_manage_configs.pack(side="left", padx=4)
         self._register(self.btn_manage_configs, "manage_configs")
-
 
         self.status_lbl = ctk.CTkLabel(
             toolbar,
@@ -696,7 +688,30 @@ class IAECompleteGUI:
         return spec.get("accent", _solid_accent(spec["button"]))
 
     def show_help(self):
-        messagebox.showinfo(self.tr("help_title"), self.tr("help_body"))
+        import os
+
+        manual_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "..", "manual.txt"
+        )
+        manual_path = os.path.normpath(manual_path)
+
+        win = ctk.CTkToplevel(self.root)
+        win.title(self.tr("help_title"))
+        win.geometry("600x500")
+        win.resizable(False, False)
+
+        textbox = ctk.CTkTextbox(win, wrap="word", font=self.fonts.body)
+        textbox.pack(fill="both", expand=True, padx=16, pady=16)
+
+        if os.path.exists(manual_path):
+            with open(manual_path, "r", encoding="utf-8") as f:
+                textbox.insert("end", f.read())
+        else:
+            textbox.insert("end", "Manual file not found.")
+
+        textbox.configure(state="disabled")
+
+        ctk.CTkButton(win, text=self.tr("cancel"), command=win.destroy).pack(pady=(0, 16))
 
     def show_about(self):
         messagebox.showinfo(self.tr("about_title"), self.tr("about_body"))
