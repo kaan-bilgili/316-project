@@ -98,8 +98,6 @@ class NewProjectDialog(ctk.CTkToplevel):
 
 
 class LogDetailDialog(ctk.CTkToplevel):
-    """Scrollable viewer for full compilation / output log text."""
-
     def __init__(self, parent, ui, student_id, status, log_text):
         super().__init__(parent)
         self.ui = ui

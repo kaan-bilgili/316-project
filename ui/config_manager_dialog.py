@@ -28,8 +28,6 @@ def _cyber_button(parent, text, command, width=None, fg_override=None, hover_ove
 
 
 class ConfigManagerDialog(ctk.CTkToplevel):
-    """Dialog for listing, editing, deleting, importing and exporting configurations. Covers Req 4 and 5."""
-
     def __init__(self, parent, config_repo: ConfigurationRepository, tr):
         super().__init__(parent)
         self.config_repo = config_repo
@@ -148,8 +146,6 @@ class ConfigManagerDialog(ctk.CTkToplevel):
 
 
 class ConfigEditDialog(ctk.CTkToplevel):
-    """Form for creating or editing a single configuration."""
-
     def __init__(self, parent, config, config_repo: ConfigurationRepository, tr, on_save):
         super().__init__(parent)
         self.config_repo = config_repo

@@ -1,14 +1,10 @@
-"""Shared light UI palette and cyberpunk button styling."""
-
 CUSTOMTKINTER_APPEARANCE = "light"
 
-# White base
 BG_COLOR = "#f5f6fa"
 TEXT_COLOR = "#1a1a2e"
 TEXT_MUTED = "#6b7280"
 BTN_TEXT_COLOR = "#ffffff"
 
-# Panels & surfaces
 GLASS_BG = "#ffffff"
 GLASS_BG_INNER = "#f0f1f6"
 GLASS_BORDER = "#dfe3ef"
@@ -18,7 +14,6 @@ GLASS_RADIUS = 24
 GLASS_RADIUS_SM = 16
 GLASS_RADIUS_PILL = 20
 
-# Treeview (light)
 TREE_HEADING_BG = "#e8ebf4"
 TREE_HEADING_ACTIVE = "#dce1ef"
 TREE_ROW_FG = "#1e1e2e"
@@ -26,7 +21,6 @@ TREE_ROW_FG_MUTED = "#5c6370"
 
 CLICK_CURSOR = "hand2"
 
-# Accent & cyberpunk buttons (purple → pink)
 ACCENT_COLOR = "#9333EA"
 CYBER_PURPLE = "#7C3AED"
 CYBER_PINK = "#EC4899"
