@@ -43,7 +43,9 @@ class ConfigurationRepository:
         self._validate_name(configuration.name)
 
         if old_name != configuration.name:
+            self.save(configuration)
             self.delete(old_name)
+            return
 
         self.save(configuration)
 
