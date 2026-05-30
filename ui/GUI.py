@@ -55,11 +55,14 @@ class IAECompleteGUI:
         self._glass_panels = []
         self._zip_path = None
         self._output_path = None
+        self._active_project = None
 
         self._build_top_bar()
+        self._build_active_project_panel()
         self._build_layout()
         self._apply_language(lang_code)
         self._apply_styles()
+        self.set_active_project(None)
         self.update_evaluation_summary()
 
     def tr(self, key):
@@ -184,6 +187,77 @@ class IAECompleteGUI:
         self.btn_about.pack(side="left")
         self._register(self.btn_about, "about")
 
+    def _build_active_project_panel(self):
+        self.active_project_frame = self._glass_panel(
+            self.root,
+            corner_radius=GLASS_RADIUS_SM,
+        )
+        self.active_project_frame.pack(fill="x", padx=20, pady=(8, 0))
+
+        content = ctk.CTkFrame(self.active_project_frame, fg_color="transparent")
+        content.pack(fill="x", padx=18, pady=10)
+
+        self.lbl_active_title = ctk.CTkLabel(
+            content,
+            font=self.fonts.section,
+            text_color=ACCENT_COLOR,
+            fg_color="transparent",
+            anchor="w",
+        )
+        self.lbl_active_title.pack(anchor="w")
+        self._register(self.lbl_active_title, "active_project")
+
+        self.lbl_project_name = ctk.CTkLabel(
+            content,
+            font=self.fonts.body,
+            text_color=TEXT_COLOR,
+            fg_color="transparent",
+            anchor="w",
+            justify="left",
+        )
+        self.lbl_project_name.pack(anchor="w", pady=(4, 0))
+
+        self.lbl_project_meta = ctk.CTkLabel(
+            content,
+            font=self.fonts.muted,
+            text_color=TEXT_MUTED,
+            fg_color="transparent",
+            anchor="w",
+            justify="left",
+        )
+        self.lbl_project_meta.pack(anchor="w", pady=(2, 0))
+
+    def set_active_project(self, project=None):
+        """Show or clear the currently open project on the main screen."""
+        self._active_project = project
+        if project is None:
+            self.lbl_project_name.configure(
+                text=self.tr("active_project_none"),
+                text_color=TEXT_MUTED,
+            )
+            self.lbl_project_meta.configure(text="")
+            return
+
+        self.lbl_project_name.configure(
+            text=project.name,
+            text_color=ACCENT_COLOR,
+        )
+
+        description = (project.description or "").strip()
+        if description and len(description) > 72:
+            description = description[:69] + "..."
+
+        if description:
+            meta = self.tr("active_project_meta").format(
+                config=project.configuration_name,
+                description=description,
+            )
+        else:
+            meta = self.tr("active_project_config_only").format(
+                config=project.configuration_name
+            )
+        self.lbl_project_meta.configure(text=meta)
+
     def _on_language_selected(self, display_name):
         for code, name in LANGUAGES.items():
             if name == display_name:
@@ -230,6 +304,8 @@ class IAECompleteGUI:
         self.btn_clear_db.configure(width=150 if lang_code == "tr" else 115)
 
         self.update_evaluation_summary()
+
+        self.set_active_project(self._active_project)
 
     def update_evaluation_summary(self, entries=None):
         """Show total / success / fail / error counts below the results table."""
