@@ -57,6 +57,7 @@ class IAECompleteGUI:
         self._zip_path = None
         self._output_path = None
         self._active_project = None
+        self._evaluation_running = False
 
         self._build_top_bar()
         self._build_active_project_panel()
@@ -368,7 +369,8 @@ class IAECompleteGUI:
         self.project_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
 
         toolbar = ctk.CTkFrame(self.project_frame, fg_color="transparent")
-        toolbar.pack(fill="x", padx=18, pady=14)
+        toolbar.pack(fill="x", padx=18, pady=(14, 0))
+        self.project_toolbar = toolbar
 
         self.btn_create = self._create_button(toolbar, width=115, height=34)
         self.btn_create.pack(side="left", padx=(0, 4))
@@ -401,6 +403,25 @@ class IAECompleteGUI:
         self.btn_clear_db = self._create_button(toolbar, width=115, height=34)
         self.btn_clear_db.pack(side="right", padx=(4, 0))
         self._register(self.btn_clear_db, "clear_history")
+
+        self.eval_progress_row = ctk.CTkFrame(self.project_frame, fg_color="transparent")
+        self.eval_progress_bar = ctk.CTkProgressBar(
+            self.eval_progress_row,
+            height=10,
+            corner_radius=5,
+            progress_color=ACCENT_COLOR,
+            fg_color=GLASS_BG_INNER,
+            border_width=0,
+        )
+        self.eval_progress_bar.pack(fill="x", padx=18, pady=(8, 14))
+        self.eval_progress_bar.set(0)
+        self._eval_busy_buttons = (
+            self.btn_run,
+            self.btn_create,
+            self.btn_open,
+            self.btn_clear_db,
+            self.btn_manage_configs,
+        )
 
         self.config_frame = self._glass_panel(self.main_scroll)
         self.config_frame.grid(row=1, column=0, sticky="ew", pady=(0, 10))
@@ -468,6 +489,7 @@ class IAECompleteGUI:
         )
         self.btn_export.grid(row=0, column=1, sticky="e", pady=(0, pad))
         self._register(self.btn_export, "export_report")
+        self._eval_busy_buttons = self._eval_busy_buttons + (self.btn_export,)
         paths_col.grid_columnconfigure(1, weight=1)
 
         self.btn_zip = self._create_button(paths_col, width=195, height=30)
@@ -592,6 +614,29 @@ class IAECompleteGUI:
     def _on_tree_leave(self, _event):
         self._tree_hover_item = None
         self._clear_tree_hover()
+
+    def begin_evaluation(self):
+        self._evaluation_running = True
+        self._set_evaluation_controls_busy(True)
+        self.eval_progress_row.pack(fill="x", after=self.project_toolbar)
+        self.eval_progress_bar.set(0)
+
+    def end_evaluation(self):
+        self._evaluation_running = False
+        self._set_evaluation_controls_busy(False)
+        self.eval_progress_row.pack_forget()
+        self.eval_progress_bar.set(0)
+
+    def set_evaluation_progress(self, fraction, status_text=None):
+        if fraction is not None:
+            self.eval_progress_bar.set(max(0.0, min(1.0, fraction)))
+        if status_text is not None:
+            self.status_lbl.configure(text=status_text, text_color="#f1c40f")
+
+    def _set_evaluation_controls_busy(self, busy):
+        state = "disabled" if busy else "normal"
+        for btn in self._eval_busy_buttons:
+            btn.configure(state=state)
 
     def set_zip_path(self, path):
         self._zip_path = path
