@@ -111,13 +111,14 @@ class IAELogicController:
             self.current_project_name = project.name
             self.ui.set_active_project(project)
 
-            self.ui.status_lbl.configure(
-                text=f"Project Created: {project.name}",
+            self.ui.set_status_message(
+                "status_project_created",
                 text_color=self.ui.accent_color,
+                name=project.name,
             )
             messagebox.showinfo(
                 self.ui.tr("new_project_title"),
-                f"Project '{name}' created successfully."
+                self.ui.tr("project_created_msg").format(name=name),
             )
         except Exception as exc:
             messagebox.showerror(self.ui.tr("new_project_title"), str(exc))
@@ -135,9 +136,7 @@ class IAELogicController:
             self.ui.set_active_project(None)
             project = self.project_manager.open_project(db_path)
             if project is None:
-                raise ValueError(
-                    "Selected database does not contain a valid project."
-            )
+                raise ValueError(self.ui.tr("err_invalid_project_db"))
             self.ui.set_zip_path(project.submissions_dir)
             self.ui.set_output_path(project.expected_output_path)
             self._load_configuration(project.configuration_name)
@@ -146,16 +145,19 @@ class IAELogicController:
             self.current_project_name = project.name
             self.ui.set_active_project(project)
 
-            self.ui.status_lbl.configure(
-                text=f"Loaded Project: {project.name}",
+            self.ui.set_status_message(
+                "status_project_loaded",
                 text_color=self.ui.accent_color,
+                name=project.name,
             )
             messagebox.showinfo(
                 self.ui.tr("open_project"),
-                f"Project Name: {project.name}\n"
-                f"Configuration: {project.configuration_name}\n"
-                f"Description: {project.description}\n"
-                f"Loaded Results: {self.loaded_results_count}"
+                self.ui.tr("project_opened_body").format(
+                    name=project.name,
+                    configuration=project.configuration_name,
+                    description=project.description or "—",
+                    count=self.loaded_results_count,
+                ),
             )
         except Exception as exc:
             messagebox.showerror(
@@ -198,9 +200,8 @@ class IAELogicController:
             return
 
         self.ui.tree.delete(*self.ui.tree.get_children())
-        self.ui.status_lbl.configure(
-            text=self.ui.tr("status_idle"),
-            text_color=self.ui.accent_color,
+        self.ui.set_status_message(
+            "status_idle", text_color=self.ui.accent_color
         )
         self.ui.update_evaluation_summary([])
         self.project_manager.clear_results()
@@ -288,9 +289,8 @@ class IAELogicController:
                 f"{self.ui.tr('err_evaluation')}\n{exc}",
             )
             self.ui.end_evaluation()
-            self.ui.status_lbl.configure(
-                text=self.ui.tr("status_idle"),
-                text_color=self.ui.accent_color,
+            self.ui.set_status_message(
+                "status_idle", text_color=self.ui.accent_color
             )
             self.ui.update_evaluation_summary([])
             return
@@ -304,9 +304,8 @@ class IAELogicController:
 
         self.ui.update_evaluation_summary(entries)
 
-        self.ui.status_lbl.configure(
-            text=self.ui.tr("status_completed"),
-            text_color=self.ui.accent_color,
+        self.ui.set_status_message(
+            "status_completed", text_color=self.ui.accent_color
         )
 
     def _on_evaluation_progress(self, event, **data):
