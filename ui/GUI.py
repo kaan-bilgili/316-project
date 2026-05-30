@@ -58,12 +58,15 @@ class IAECompleteGUI:
         self._output_path = None
         self._active_project = None
         self._evaluation_running = False
+        self._status_message_key = "status_idle"
+        self._status_fmt = {}
 
         self._build_top_bar()
         self._build_active_project_panel()
         self._build_layout()
         self._apply_language(lang_code)
         self._apply_styles()
+        self.set_status_message("status_idle")
         self.set_active_project(None)
         self.update_evaluation_summary()
 
@@ -293,11 +296,7 @@ class IAECompleteGUI:
         else:
             self.lbl_output.configure(text=self.tr("no_file"))
 
-        idle_statuses = {
-            TRANSLATIONS[code]["status_idle"] for code in LANGUAGES
-        }
-        if self.status_lbl.cget("text") in idle_statuses:
-            self.status_lbl.configure(text=self.tr("status_idle"))
+        self.set_status_message(self._status_message_key, **self._status_fmt)
 
         self.tree.heading("student_id", text=self.tr("col_student_id"))
         self.tree.heading("status", text=self.tr("col_status"))
@@ -392,7 +391,6 @@ class IAECompleteGUI:
         )
         self.status_lbl.pack(side="left", fill="x", expand=True, padx=12)
         self._accent_labels.append(self.status_lbl)
-        self._register(self.status_lbl, "status_idle")
 
         self.btn_run = self._create_button(
             toolbar, width=210, height=36, font=self.fonts.button_emphasis
@@ -614,6 +612,16 @@ class IAECompleteGUI:
     def _on_tree_leave(self, _event):
         self._tree_hover_item = None
         self._clear_tree_hover()
+
+    def set_status_message(self, key, text_color=None, **fmt):
+        """Set status bar text from an i18n key; preserved across language changes."""
+        self._status_message_key = key
+        self._status_fmt = fmt
+        text = self.tr(key).format(**fmt) if fmt else self.tr(key)
+        kwargs = {"text": text}
+        if text_color is not None:
+            kwargs["text_color"] = text_color
+        self.status_lbl.configure(**kwargs)
 
     def begin_evaluation(self):
         self._evaluation_running = True

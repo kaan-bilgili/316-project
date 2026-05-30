@@ -36,6 +36,8 @@ TRANSLATIONS = {
         "status_idle": "Status: System Idle",
         "status_compiling": "Status: Compiling and Testing Submissions...",
         "status_completed": "Status: Evaluation Completed",
+        "status_project_created": "Status: Project created — {name}",
+        "status_project_loaded": "Status: Project loaded — {name}",
         "eval_progress_zip": "Extracting student ZIP files...",
         "eval_progress_start": "Evaluating {total} submission(s)...",
         "eval_progress_student": "Evaluating {student_id} ({current}/{total})...",
@@ -77,9 +79,15 @@ TRANSLATIONS = {
         "err_project_name": "Project name is required.",
         "err_project_paths": "Select a ZIP folder and expected output file first.",
         "err_project_db": "Select a location for the project database.",
-        "project_created": "Project created successfully.",
-        "project_opened": "Project opened successfully.",
+        "project_created_msg": "Project \"{name}\" was created successfully.",
+        "project_opened_body": (
+            "Project name: {name}\n"
+            "Configuration: {configuration}\n"
+            "Description: {description}\n"
+            "Results loaded: {count}"
+        ),
         "err_open_project": "Could not open project:",
+        "err_invalid_project_db": "Selected database does not contain a valid project.",
         "confirm_clear": "Clear all results from the table and database?",
         "confirm_clear_title": "Clear History",
         "err_no_zip": "Select a student ZIP folder before starting evaluation.",
@@ -139,6 +147,8 @@ TRANSLATIONS = {
         "status_idle": "Durum: Sistem Beklemede",
         "status_compiling": "Durum: Derleniyor ve Test Ediliyor...",
         "status_completed": "Durum: Değerlendirme Tamamlandı",
+        "status_project_created": "Durum: Proje oluşturuldu — {name}",
+        "status_project_loaded": "Durum: Proje yüklendi — {name}",
         "eval_progress_zip": "Öğrenci ZIP dosyaları ayıklanıyor...",
         "eval_progress_start": "{total} gönderim değerlendiriliyor...",
         "eval_progress_student": "{student_id} değerlendiriliyor ({current}/{total})...",
@@ -180,9 +190,15 @@ TRANSLATIONS = {
         "err_project_name": "Proje adı gereklidir.",
         "err_project_paths": "Önce ZIP klasörü ve beklenen çıktı dosyasını seçin.",
         "err_project_db": "Proje veritabanı için bir konum seçin.",
-        "project_created": "Proje başarıyla oluşturuldu.",
-        "project_opened": "Proje başarıyla açıldı.",
+        "project_created_msg": "\"{name}\" projesi başarıyla oluşturuldu.",
+        "project_opened_body": (
+            "Proje adı: {name}\n"
+            "Yapılandırma: {configuration}\n"
+            "Açıklama: {description}\n"
+            "Yüklenen sonuç: {count}"
+        ),
         "err_open_project": "Proje açılamadı:",
+        "err_invalid_project_db": "Seçilen veritabanında geçerli bir proje yok.",
         "confirm_clear": "Tablodaki ve veritabanındaki tüm sonuçlar temizlensin mi?",
         "confirm_clear_title": "Geçmişi Temizle",
         "err_no_zip": "Değerlendirmeyi başlatmadan önce öğrenci ZIP klasörünü seçin.",
