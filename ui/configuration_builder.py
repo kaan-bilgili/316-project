@@ -1,4 +1,5 @@
 import sys
+from typing import Optional
 
 from model.configuration import Configuration
 
@@ -30,23 +31,33 @@ PROG_LANG_PRESETS = {
 }
 
 
-def _normalize_run_command(command):
+def _normalize_run_command(command: str) -> str:
     if sys.platform == "win32" and command.startswith("./"):
         return command[2:]
     return command
 
 
-def config_to_prog_lang(config):
-    if config.is_interpreted:
+def config_to_prog_lang(config: Configuration) -> str:
+    source_filename = config.source_filename.lower()
+    if config.is_interpreted and source_filename.endswith(".py"):
         return "Python (Interpreter)"
-    if config.source_filename.endswith(".java"):
+    if not config.is_interpreted and source_filename.endswith(".java"):
         return "Java (JDK)"
-    if config.source_filename.endswith(".cpp"): 
-        return "C++ (G++)"                        
-    return "C (GCC)"
+    if not config.is_interpreted and source_filename.endswith(".cpp"):
+        return "C++ (G++)"
+    if not config.is_interpreted and source_filename.endswith(".c"):
+        return "C (GCC)"
+    raise ValueError(
+        f"Unsupported configuration source file: {config.source_filename}"
+    )
 
 
-def build_configuration(config_name, prog_lang, compiler_path, select_prog_lang_label):
+def build_configuration(
+    config_name: str,
+    prog_lang: str,
+    compiler_path: Optional[str],
+    select_prog_lang_label: str,
+) -> Optional[Configuration]:
     if prog_lang == select_prog_lang_label or prog_lang not in PROG_LANG_PRESETS:
         return None
 
