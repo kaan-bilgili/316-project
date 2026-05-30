@@ -4,7 +4,6 @@ from service.compiler import Compiler
 from service.output_comparator import OutputComparator
 from service.runner import Runner
 from service.zip_processor import ZipProcessor
-from ui.models import SubmissionStatus as ServiceStatus
 from ui.models import SubmissionStatus, ReportEntry
 
 
@@ -128,8 +127,8 @@ class EvaluationService:
 
     @staticmethod
     def _map_service_status(status):
-        if status == ServiceStatus.SUCCESS:
+        if status == SubmissionStatus.SUCCESS:
             return SubmissionStatus.SUCCESS
-        if status == ServiceStatus.WRONG_OUTPUT:
-            return SubmissionStatus.FAIL
+        if status == SubmissionStatus.WRONG_OUTPUT:
+            return SubmissionStatus.WRONG_OUTPUT
         return SubmissionStatus.ERROR
