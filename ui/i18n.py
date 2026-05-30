@@ -9,13 +9,9 @@ TRANSLATIONS = {
     "en": {
         "app_title": "IAE - Integrated Assignment Environment",
         "language": "Language",
-        "theme": "Theme",
         "help": "Help",
         "user_manual": "User Manual",
         "about": "About",
-        "theme_gold": "Black & Pink-Orange",
-        "theme_green": "Black & Green",
-        "theme_blue": "Black & Blue",
         "new_project": "New Project",
         "open_project": "Open Project",
         "clear_history": "Clear History",
@@ -43,7 +39,7 @@ TRANSLATIONS = {
         "help_title": "IAE Manual",
         "help_body": (
             "Set configurations, provide input folders, and press START EVALUATION.\n\n"
-            "Change UI language, color theme, and help from the top bar."
+            "Change UI language and help from the top bar."
         ),
         "about_title": "About IAE",
         "about_body": "Version 1.0.0\nDesigned for CE 316 Software Engineering Project.",
@@ -101,13 +97,9 @@ TRANSLATIONS = {
     "tr": {
         "app_title": "IAE - Entegre Ödev Ortamı",
         "language": "Dil",
-        "theme": "Tema",
         "help": "Yardım",
         "user_manual": "Kullanım Kılavuzu",
         "about": "Hakkında",
-        "theme_gold": "Siyah & Pembe-Turuncu",
-        "theme_green": "Siyah & Yeşil",
-        "theme_blue": "Siyah & Mavi",
         "new_project": "Yeni Proje",
         "open_project": "Proje Aç",
         "clear_history": "Geçmişi Temizle",
@@ -135,7 +127,7 @@ TRANSLATIONS = {
         "help_title": "IAE Kılavuzu",
         "help_body": (
             "Yapılandırmayı ayarlayın, girdi klasörlerini seçin ve DEĞERLENDİRMEYİ BAŞLAT'a basın.\n\n"
-            "Üst çubuktan arayüz dili, renk teması ve yardım menüsüne erişebilirsiniz."
+            "Üst çubuktan arayüz dili ve yardım menüsüne erişebilirsiniz."
         ),
         "about_title": "IAE Hakkında",
         "about_body": "Sürüm 1.0.0\nCE 316 Yazılım Mühendisliği Projesi için tasarlandı.",
@@ -190,10 +182,4 @@ TRANSLATIONS = {
         "import_config": "İçe Aktar",
         "export_config": "Dışa Aktar",
     },
-}
-
-THEME_NAME_KEYS = {
-    "gold": "theme_gold",
-    "green": "theme_green",
-    "blue": "theme_blue",
 }

@@ -3,6 +3,28 @@ from tkinter import filedialog, messagebox
 
 from data.configuration_repository import ConfigurationRepository
 from model.configuration import Configuration
+from ui.theme import (
+    BG_COLOR,
+    BTN_TEXT_COLOR,
+    BUTTON_COLOR,
+    BUTTON_HOVER,
+    TEXT_COLOR,
+    TEXT_MUTED,
+)
+
+
+def _cyber_button(parent, text, command, width=None, fg_override=None, hover_override=None):
+    kwargs = {
+        "text": text,
+        "command": command,
+        "fg_color": fg_override or BUTTON_COLOR,
+        "hover_color": hover_override or BUTTON_HOVER,
+        "border_width": 0,
+        "text_color": BTN_TEXT_COLOR,
+    }
+    if width is not None:
+        kwargs["width"] = width
+    return ctk.CTkButton(parent, **kwargs)
 
 
 class ConfigManagerDialog(ctk.CTkToplevel):
@@ -15,6 +37,7 @@ class ConfigManagerDialog(ctk.CTkToplevel):
         self.title(tr("manage_configs_title"))
         self.geometry("680x420")
         self.resizable(False, False)
+        self.configure(fg_color=BG_COLOR)
         self.transient(parent)
         self.grab_set()
 
@@ -28,15 +51,15 @@ class ConfigManagerDialog(ctk.CTkToplevel):
         btn_frame = ctk.CTkFrame(self, fg_color="transparent")
         btn_frame.pack(fill="x", padx=16, pady=(0, 16))
 
-        ctk.CTkButton(
+        _cyber_button(
             btn_frame, text=self.tr("new_config_title"), command=self._new_config
         ).pack(side="left")
 
-        ctk.CTkButton(
+        _cyber_button(
             btn_frame, text=self.tr("import_config"), command=self._import_config
         ).pack(side="left", padx=(8, 0))
 
-        ctk.CTkButton(
+        _cyber_button(
             btn_frame, text=self.tr("cancel"), command=self.destroy
         ).pack(side="right")
 
@@ -47,7 +70,7 @@ class ConfigManagerDialog(ctk.CTkToplevel):
         configs = self.config_repo.load_all()
         if not configs:
             ctk.CTkLabel(
-                self.listbox, text=self.tr("no_configs"), text_color="gray"
+                self.listbox, text=self.tr("no_configs"), text_color=TEXT_MUTED
             ).pack(pady=20)
             return
 
@@ -55,28 +78,29 @@ class ConfigManagerDialog(ctk.CTkToplevel):
             row = ctk.CTkFrame(self.listbox, fg_color="transparent")
             row.pack(fill="x", pady=4)
 
-            ctk.CTkLabel(row, text=config.name, anchor="w", width=180).pack(
+            ctk.CTkLabel(row, text=config.name, anchor="w", width=180, text_color=TEXT_COLOR).pack(
                 side="left", padx=8
             )
             ctk.CTkLabel(
                 row,
                 text=f"{config.compiler_path}  |  {config.source_filename}",
-                text_color="gray",
+                text_color=TEXT_MUTED,
                 anchor="w",
             ).pack(side="left", expand=True)
 
-            ctk.CTkButton(
+            _cyber_button(
                 row, text=self.tr("edit"), width=70,
                 command=lambda c=config: self._edit_config(c),
             ).pack(side="right", padx=(4, 0))
 
-            ctk.CTkButton(
+            _cyber_button(
                 row, text=self.tr("delete"), width=70,
-                fg_color="#c0392b", hover_color="#922b21",
+                fg_override=("#DC2626", "#B91C1C"),
+                hover_override=("#B91C1C", "#991B1B"),
                 command=lambda c=config: self._delete_config(c),
             ).pack(side="right", padx=(4, 0))
 
-            ctk.CTkButton(
+            _cyber_button(
                 row, text=self.tr("export_config"), width=70,
                 command=lambda c=config: self._export_config(c),
             ).pack(side="right", padx=(4, 0))
@@ -135,6 +159,7 @@ class ConfigEditDialog(ctk.CTkToplevel):
         self.title(tr("edit_config_title") if config else tr("new_config_title"))
         self.geometry("460x400")
         self.resizable(False, False)
+        self.configure(fg_color=BG_COLOR)
         self.transient(parent)
         self.grab_set()
 
@@ -154,10 +179,10 @@ class ConfigEditDialog(ctk.CTkToplevel):
 
         self.entries = {}
         for i, (key, value) in enumerate(fields):
-            ctk.CTkLabel(form, text=self.tr(key), anchor="w").grid(
+            ctk.CTkLabel(form, text=self.tr(key), anchor="w", text_color=TEXT_COLOR).grid(
                 row=i, column=0, sticky="w", pady=6, padx=(0, 12)
             )
-            entry = ctk.CTkEntry(form, width=280)
+            entry = ctk.CTkEntry(form, width=280, fg_color=GLASS_BG, text_color=TEXT_COLOR)
             entry.insert(0, value)
             entry.grid(row=i, column=1, sticky="ew", pady=6)
             self.entries[key] = entry
@@ -175,11 +200,11 @@ class ConfigEditDialog(ctk.CTkToplevel):
         btn_frame = ctk.CTkFrame(self, fg_color="transparent")
         btn_frame.pack(fill="x", padx=20, pady=(0, 16))
 
-        ctk.CTkButton(
+        _cyber_button(
             btn_frame, text=self.tr("config_saved"), command=self._submit
         ).pack(side="right", padx=(8, 0))
 
-        ctk.CTkButton(
+        _cyber_button(
             btn_frame, text=self.tr("cancel"), command=self.destroy
         ).pack(side="right")
 
