@@ -55,6 +55,12 @@ TRANSLATIONS = {
         "log_detail_status": "Status: {status}",
         "log_detail_empty": "(No log details recorded.)",
         "log_detail_close": "Close",
+        "results_search_placeholder": "Search student ID…",
+        "filter_all": "All statuses",
+        "filter_success": "Success",
+        "filter_fail": "Fail",
+        "filter_error": "Error",
+        "summary_showing": "Showing {visible} of {total}",
         "help_title": "IAE Manual",
         "help_body": (
             "Set configurations, provide input folders, and press START EVALUATION.\n\n"
@@ -168,6 +174,12 @@ TRANSLATIONS = {
         "log_detail_status": "Durum: {status}",
         "log_detail_empty": "(Kayıt metni yok.)",
         "log_detail_close": "Kapat",
+        "results_search_placeholder": "Öğrenci no ara…",
+        "filter_all": "Tüm durumlar",
+        "filter_success": "Başarılı",
+        "filter_fail": "Başarısız",
+        "filter_error": "Hata",
+        "summary_showing": "{visible} / {total} gösteriliyor",
         "help_title": "IAE Kılavuzu",
         "help_body": (
             "Yapılandırmayı ayarlayın, girdi klasörlerini seçin ve DEĞERLENDİRMEYİ BAŞLAT'a basın.\n\n"
