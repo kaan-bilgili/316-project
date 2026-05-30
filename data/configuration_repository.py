@@ -1,5 +1,6 @@
 import json
 import os
+import tempfile
 from typing import List, Optional
 
 from model.configuration import Configuration
@@ -17,8 +18,23 @@ class ConfigurationRepository:
         self._validate_name(configuration.name)
         os.makedirs(self.configurations_dir, exist_ok=True)
 
-        with open(self._get_path(configuration.name), "w", encoding="utf-8") as file:
-            json.dump(configuration.to_dict(), file, indent=4)
+        path = self._get_path(configuration.name)
+        temp_path = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                "w",
+                encoding="utf-8",
+                dir=self.configurations_dir,
+                delete=False,
+                suffix=".tmp",
+            ) as file:
+                json.dump(configuration.to_dict(), file, indent=4)
+                temp_path = file.name
+
+            os.replace(temp_path, path)
+        finally:
+            if temp_path and os.path.exists(temp_path):
+                os.remove(temp_path)
 
     def update(self, old_name: str, configuration: Configuration) -> None:
         """Updates an existing configuration. Handles name changes."""
@@ -83,11 +99,14 @@ class ConfigurationRepository:
             return []
 
         configurations = []
-        for filename in os.listdir(self.configurations_dir):
+        for filename in sorted(os.listdir(self.configurations_dir)):
             if filename.endswith(".json"):
                 path = os.path.join(self.configurations_dir, filename)
-                with open(path, "r", encoding="utf-8") as file:
-                    configurations.append(Configuration.from_dict(json.load(file)))
+                try:
+                    with open(path, "r", encoding="utf-8") as file:
+                        configurations.append(Configuration.from_dict(json.load(file)))
+                except (OSError, json.JSONDecodeError, ValueError):
+                    continue
 
         return configurations
 
@@ -96,6 +115,8 @@ class ConfigurationRepository:
         return os.path.join(self.configurations_dir, filename)
 
     def _validate_name(self, name: str) -> None:
+        if not isinstance(name, str):
+            raise ValueError("Configuration name must be text.")
         if not name.strip():
             raise ValueError("Configuration name is required.")
         if os.path.basename(name) != name:
