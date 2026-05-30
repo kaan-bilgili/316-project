@@ -24,6 +24,7 @@ class IAELogicController:
 
         self.ui.btn_create.configure(command=self.create_project)
         self.ui.btn_open.configure(command=self.open_project)
+        self.ui.btn_save.configure(command=self.save_project)
         self.ui.btn_clear_db.configure(command=self.clear_history)
         self.ui.btn_browse_path.configure(command=self.browse_compiler)
         self.ui.btn_zip.configure(command=self.select_zip_folder)
@@ -164,6 +165,43 @@ class IAELogicController:
                 self.ui.tr("open_project"),
                 f"{self.ui.tr('err_open_project')}\n{exc}",
             )
+
+    def save_project(self):
+        project = self.project_manager.get_current_project()
+        if project is None:
+            messagebox.showwarning(
+                self.ui.tr("save_project"),
+                self.ui.tr("err_no_project_to_save"),
+            )
+            return
+
+        if not self.ui._zip_path or not self.ui._output_path:
+            messagebox.showwarning(
+                self.ui.tr("save_project"), self.ui.tr("err_project_paths")
+            )
+            return
+
+        project.submissions_dir = self.ui._zip_path
+        project.expected_output_path = self.ui._output_path
+
+        try:
+            configuration = self._build_configuration(project.configuration_name)
+            if configuration is not None:
+                self.config_repo.save(configuration)
+            self.project_manager.save_project()
+            self.current_project_name = project.name
+            self.ui.set_active_project(project)
+            self.ui.set_status_message(
+                "status_project_saved",
+                text_color=self.ui.accent_color,
+                name=project.name,
+            )
+            messagebox.showinfo(
+                self.ui.tr("save_project"),
+                self.ui.tr("project_saved_msg").format(name=project.name),
+            )
+        except Exception as exc:
+            messagebox.showerror(self.ui.tr("save_project"), str(exc))
 
     def _load_configuration(self, configuration_name):
         config = self.config_repo.load(configuration_name)

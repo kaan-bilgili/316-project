@@ -238,8 +238,12 @@ class IAECompleteGUI:
         )
         self.lbl_project_meta.pack(anchor="w", pady=(2, 0))
 
+    def set_save_project_enabled(self, enabled):
+        self.btn_save.configure(state="normal" if enabled else "disabled")
+
     def set_active_project(self, project=None):
         self._active_project = project
+        self.set_save_project_enabled(project is not None)
         if project is None:
             self.lbl_project_name.configure(
                 text=self.tr("active_project_none"),
@@ -302,6 +306,8 @@ class IAECompleteGUI:
         self.tree.heading("log_details", text=self.tr("col_logs"))
 
         self.btn_clear_db.configure(width=150 if lang_code == "tr" else 115)
+        if hasattr(self, "btn_save"):
+            self.btn_save.configure(width=150 if lang_code == "tr" else 140)
 
         self._sync_results_filter_menu()
         self.results_search_entry.configure(
@@ -583,12 +589,24 @@ class IAECompleteGUI:
         self.paths_summary.pack(anchor="w", pady=(2, 0))
         self._muted_labels.append(self.paths_summary)
 
+        paths_actions = ctk.CTkFrame(paths_col, fg_color="transparent")
+        paths_actions.grid(row=0, column=1, sticky="ne", pady=(0, pad))
+
         self.btn_export = self._create_button(
-            paths_col, width=140, height=34, font=self.fonts.button_emphasis
+            paths_actions, width=140, height=34, font=self.fonts.button_emphasis
         )
-        self.btn_export.grid(row=0, column=1, sticky="e", pady=(0, pad))
+        self.btn_export.pack(anchor="e")
         self._register(self.btn_export, "export_report")
-        self._eval_busy_buttons = self._eval_busy_buttons + (self.btn_export,)
+
+        self.btn_save = self._create_button(paths_actions, width=140, height=34)
+        self.btn_save.pack(anchor="e", pady=(6, 0))
+        self._register(self.btn_save, "save_project")
+        self.btn_save.configure(state="disabled")
+
+        self._eval_busy_buttons = self._eval_busy_buttons + (
+            self.btn_export,
+            self.btn_save,
+        )
         paths_col.grid_columnconfigure(1, weight=1)
 
         self.btn_zip = self._create_button(paths_col, width=195, height=30)

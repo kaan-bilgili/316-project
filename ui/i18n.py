@@ -16,6 +16,7 @@ TRANSLATIONS = {
         "active_project_config_only": "Configuration: {config}",
         "new_project": "New Project",
         "open_project": "Open Project",
+        "save_project": "Save Project",
         "clear_history": "Clear History",
         "manage_configs": "Manage Configs",
         "config_settings": "Configuration Settings",
@@ -38,6 +39,7 @@ TRANSLATIONS = {
         "status_completed": "Status: Evaluation Completed",
         "status_project_created": "Status: Project created — {name}",
         "status_project_loaded": "Status: Project loaded — {name}",
+        "status_project_saved": "Status: Project saved — {name}",
         "eval_progress_zip": "Extracting student ZIP files...",
         "eval_progress_start": "Evaluating {total} submission(s)...",
         "eval_progress_student": "Evaluating {student_id} ({current}/{total})...",
@@ -86,6 +88,8 @@ TRANSLATIONS = {
         "err_project_paths": "Select a ZIP folder and expected output file first.",
         "err_project_db": "Select a location for the project database.",
         "project_created_msg": "Project \"{name}\" was created successfully.",
+        "project_saved_msg": "Project \"{name}\" saved successfully.",
+        "err_no_project_to_save": "Open or create a project before saving.",
         "project_opened_body": (
             "Project name: {name}\n"
             "Configuration: {configuration}\n"
@@ -135,6 +139,7 @@ TRANSLATIONS = {
         "active_project_config_only": "Yapılandırma: {config}",
         "new_project": "Yeni Proje",
         "open_project": "Proje Aç",
+        "save_project": "Projeyi Kaydet",
         "clear_history": "Geçmişi Temizle",
         "manage_configs": "Yapılandırmalar",
         "config_settings": "Yapılandırma Ayarları",
@@ -157,6 +162,7 @@ TRANSLATIONS = {
         "status_completed": "Durum: Değerlendirme Tamamlandı",
         "status_project_created": "Durum: Proje oluşturuldu — {name}",
         "status_project_loaded": "Durum: Proje yüklendi — {name}",
+        "status_project_saved": "Durum: Proje kaydedildi — {name}",
         "eval_progress_zip": "Öğrenci ZIP dosyaları ayıklanıyor...",
         "eval_progress_start": "{total} gönderim değerlendiriliyor...",
         "eval_progress_student": "{student_id} değerlendiriliyor ({current}/{total})...",
@@ -205,6 +211,8 @@ TRANSLATIONS = {
         "err_project_paths": "Önce ZIP klasörü ve beklenen çıktı dosyasını seçin.",
         "err_project_db": "Proje veritabanı için bir konum seçin.",
         "project_created_msg": "\"{name}\" projesi başarıyla oluşturuldu.",
+        "project_saved_msg": "\"{name}\" projesi başarıyla kaydedildi.",
+        "err_no_project_to_save": "Kaydetmeden önce bir proje açın veya oluşturun.",
         "project_opened_body": (
             "Proje adı: {name}\n"
             "Yapılandırma: {configuration}\n"
