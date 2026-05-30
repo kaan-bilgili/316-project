@@ -20,8 +20,8 @@ class IAELogicController:
         self.report_generator = ReportGenerator()
         self.current_project_name = None
         self.loaded_results_count = 0
+        self._eval_live_entries = []
 
-        
         self.ui.btn_create.configure(command=self.create_project)
         self.ui.btn_open.configure(command=self.open_project)
         self.ui.btn_clear_db.configure(command=self.clear_history)
@@ -263,14 +263,14 @@ class IAELogicController:
             messagebox.showerror(self.ui.tr("start_evaluation"), str(exc))
             return
 
-        self.ui.status_lbl.configure(
-            text=self.ui.tr("status_compiling"),
-            text_color="#f1c40f",
-        )
         self.ui.tree.delete(*self.ui.tree.get_children())
         self.ui.update_evaluation_summary([])
+        self._eval_live_entries = []
         if project:
             self.project_manager.clear_results()
+
+        self.ui.begin_evaluation()
+        self.ui.set_evaluation_progress(0, self.ui.tr("status_compiling"))
         self.root.update_idletasks()
 
         try:
@@ -280,12 +280,14 @@ class IAELogicController:
                 configuration,
                 runtime_args=self.ui.args_entry.get().strip(),
                 timeout=timeout,
+                progress_callback=self._on_evaluation_progress,
             )
         except Exception as exc:
             messagebox.showerror(
                 self.ui.tr("start_evaluation"),
                 f"{self.ui.tr('err_evaluation')}\n{exc}",
             )
+            self.ui.end_evaluation()
             self.ui.status_lbl.configure(
                 text=self.ui.tr("status_idle"),
                 text_color=self.ui.accent_color,
@@ -293,29 +295,77 @@ class IAELogicController:
             self.ui.update_evaluation_summary([])
             return
 
+        self.ui.end_evaluation()
+
         if not entries:
             messagebox.showinfo(
                 self.ui.tr("start_evaluation"), self.ui.tr("err_no_students")
             )
 
-        for entry in entries:
-            self.ui.tree.insert(
-                "", "end", values=(entry.student_id, entry.status.value, entry.log_details)
-            )
-            self._persist_result(entry)
-
         self.ui.update_evaluation_summary(entries)
 
-        project_name = (
-            self.current_project_name
-            if self.current_project_name
-            else "Session"
-        )
-
         self.ui.status_lbl.configure(
-            text=f"Evaluation Completed - {project_name}",
+            text=self.ui.tr("status_completed"),
             text_color=self.ui.accent_color,
         )
+
+    def _on_evaluation_progress(self, event, **data):
+        if event == "zip_start":
+            self.ui.set_evaluation_progress(0, self.ui.tr("eval_progress_zip"))
+        elif event == "zip_done":
+            self.ui.set_evaluation_progress(0.05, self.ui.tr("status_compiling"))
+        elif event == "eval_start":
+            total = data.get("total", 0)
+            if total == 0:
+                self.ui.set_evaluation_progress(
+                    0, self.ui.tr("eval_progress_none")
+                )
+            else:
+                self.ui.set_evaluation_progress(
+                    0.08,
+                    self.ui.tr("eval_progress_start").format(total=total),
+                )
+        elif event == "student_start":
+            index = data.get("index", 0)
+            total = data.get("total", 0)
+            student_id = data.get("student_id", "")
+            fraction = ((index - 1) / total) if total else 0.0
+            self.ui.set_evaluation_progress(
+                0.08 + 0.92 * fraction,
+                self.ui.tr("eval_progress_student").format(
+                    student_id=student_id,
+                    current=index,
+                    total=total,
+                ),
+            )
+        elif event == "student_done":
+            entry = data.get("entry")
+            if entry is not None:
+                self._eval_live_entries.append(entry)
+                self.ui.tree.insert(
+                    "",
+                    "end",
+                    values=(
+                        entry.student_id,
+                        entry.status.value,
+                        entry.log_details,
+                    ),
+                )
+                self._persist_result(entry)
+                self.ui.update_evaluation_summary(self._eval_live_entries)
+            index = data.get("index", 0)
+            total = data.get("total", 0)
+            fraction = (index / total) if total else 1.0
+            student_id = data.get("student_id", "")
+            self.ui.set_evaluation_progress(
+                0.08 + 0.92 * fraction,
+                self.ui.tr("eval_progress_student").format(
+                    student_id=student_id,
+                    current=index,
+                    total=total,
+                ),
+            )
+        self.root.update_idletasks()
 
     def _result_repo(self):
         db = self.project_manager._db
