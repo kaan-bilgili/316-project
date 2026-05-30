@@ -1,3 +1,5 @@
+import os
+
 import customtkinter as ctk
 from tkinter import ttk, messagebox
 from ui.dialogs import LogDetailDialog
@@ -68,6 +70,7 @@ class IAECompleteGUI:
         self._apply_styles()
         self.set_status_message("status_idle")
         self.set_active_project(None)
+        self._update_inputs_paths_summary()
         self.update_evaluation_summary()
 
     def tr(self, key):
@@ -287,14 +290,8 @@ class IAECompleteGUI:
         else:
             self.prog_lang_var.set(self.tr("select_prog_lang"))
 
-        if self._zip_path:
-            self.lbl_zip.configure(text=self._zip_path)
-        else:
-            self.lbl_zip.configure(text=self.tr("no_folder"))
-        if self._output_path:
-            self.lbl_output.configure(text=self._output_path)
-        else:
-            self.lbl_output.configure(text=self.tr("no_file"))
+        self._refresh_path_labels()
+        self._update_inputs_paths_summary()
 
         self.set_status_message(self._status_message_key, **self._status_fmt)
 
@@ -475,12 +472,28 @@ class IAECompleteGUI:
         self.timeout_entry.grid(row=3, column=1, sticky="w", padx=8, pady=(pad, 0))
         self.timeout_entry.insert(0, "5")
 
+        paths_header = ctk.CTkFrame(paths_col, fg_color="transparent")
+        paths_header.grid(row=0, column=0, sticky="w", pady=(0, pad))
+
         paths_title = ctk.CTkLabel(
-            paths_col, font=self.fonts.section, text_color=TEXT_COLOR, fg_color="transparent"
+            paths_header,
+            font=self.fonts.section,
+            text_color=TEXT_COLOR,
+            fg_color="transparent",
         )
-        paths_title.grid(row=0, column=0, sticky="w", pady=(0, pad))
+        paths_title.pack(anchor="w")
         self._section_labels.append(paths_title)
         self._register(paths_title, "inputs_outputs")
+
+        self.paths_summary = ctk.CTkLabel(
+            paths_header,
+            font=self.fonts.caption,
+            text_color=TEXT_MUTED,
+            fg_color="transparent",
+            anchor="w",
+        )
+        self.paths_summary.pack(anchor="w", pady=(2, 0))
+        self._muted_labels.append(self.paths_summary)
 
         self.btn_export = self._create_button(
             paths_col, width=140, height=34, font=self.fonts.button_emphasis
@@ -646,13 +659,55 @@ class IAECompleteGUI:
         for btn in self._eval_busy_buttons:
             btn.configure(state=state)
 
+    @staticmethod
+    def _path_display_name(path):
+        if not path:
+            return None
+        name = os.path.basename(path.rstrip("/\\"))
+        return name or path
+
+    def _refresh_path_labels(self):
+        if self._zip_path:
+            self.lbl_zip.configure(
+                text=self._path_display_name(self._zip_path),
+                text_color=self.accent_color,
+            )
+        else:
+            self.lbl_zip.configure(
+                text=self.tr("no_folder"), text_color=TEXT_MUTED
+            )
+        if self._output_path:
+            self.lbl_output.configure(
+                text=self._path_display_name(self._output_path),
+                text_color=self.accent_color,
+            )
+        else:
+            self.lbl_output.configure(
+                text=self.tr("no_file"), text_color=TEXT_MUTED
+            )
+
+    def _update_inputs_paths_summary(self):
+        zip_name = self._path_display_name(self._zip_path)
+        out_name = self._path_display_name(self._output_path)
+        if not zip_name and not out_name:
+            self.paths_summary.configure(text=self.tr("inputs_paths_summary_empty"))
+        else:
+            self.paths_summary.configure(
+                text=self.tr("inputs_paths_summary").format(
+                    zip=zip_name or "—",
+                    output=out_name or "—",
+                )
+            )
+
     def set_zip_path(self, path):
         self._zip_path = path
-        self.lbl_zip.configure(text=path, text_color=self.accent_color)
+        self._refresh_path_labels()
+        self._update_inputs_paths_summary()
 
     def set_output_path(self, path):
         self._output_path = path
-        self.lbl_output.configure(text=path, text_color=self.accent_color)
+        self._refresh_path_labels()
+        self._update_inputs_paths_summary()
 
     def _label(self, parent, key, row, column):
         lbl = ctk.CTkLabel(
