@@ -97,6 +97,7 @@ class IAELogicController:
 
         try:
             self.project_manager.close_project()
+            self.ui.set_active_project(None)
             self.project_manager.new_project(
                 name=name,
                 description=description,
@@ -108,6 +109,7 @@ class IAELogicController:
             project = self.project_manager.get_current_project()
 
             self.current_project_name = project.name
+            self.ui.set_active_project(project)
 
             self.ui.status_lbl.configure(
                 text=f"Project Created: {project.name}",
@@ -130,6 +132,7 @@ class IAELogicController:
 
         try:
             self.project_manager.close_project()
+            self.ui.set_active_project(None)
             project = self.project_manager.open_project(db_path)
             if project is None:
                 raise ValueError(
@@ -141,6 +144,7 @@ class IAELogicController:
             self._load_results_from_db(project.id)
 
             self.current_project_name = project.name
+            self.ui.set_active_project(project)
 
             self.ui.status_lbl.configure(
                 text=f"Loaded Project: {project.name}",
