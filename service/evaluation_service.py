@@ -18,7 +18,7 @@ class EvaluationService:
         return sorted(
             name
             for name in os.listdir(zip_folder)
-            if name.isdigit()
+            if not name.startswith(".")
             and os.path.isdir(os.path.join(zip_folder, name))
         )
 

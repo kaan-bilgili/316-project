@@ -410,11 +410,8 @@ class IAELogicController:
         repo.save(project.id, entry)
 
     def export_report(self):
-        rows = [
-            self.ui.tree.item(item, "values")
-            for item in self.ui.tree.get_children()
-        ]
-        if not rows:
+        entries = self.ui._rows_to_entries(self.ui._tree_rows)
+        if not entries:
             messagebox.showwarning(
                 self.ui.tr("export_title"), self.ui.tr("export_empty")
             )
@@ -433,7 +430,9 @@ class IAELogicController:
             self.ui.tr("col_status"),
             self.ui.tr("col_logs"),
         )
-        self.report_generator.export_txt(path, rows, headers)
+        project = self.project_manager.get_current_project()
+        project_name = project.name if project else ""
+        self.report_generator.export_entries_txt(path, entries, headers, project_name)
         messagebox.showinfo(
             self.ui.tr("export_title"), self.ui.tr("export_success")
         )
