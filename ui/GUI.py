@@ -34,6 +34,7 @@ from ui.theme import (
 
 class IAECompleteGUI:
     _COMPACT_PAD = 6
+    _RESULT_FILTER_KEYS = ("all", "success", "fail", "error")
 
     def __init__(self, root, lang_code="en"):
         self.root = root
@@ -62,6 +63,8 @@ class IAECompleteGUI:
         self._evaluation_running = False
         self._status_message_key = "status_idle"
         self._status_fmt = {}
+        self._tree_rows = []
+        self._results_filter_key = "all"
 
         self._build_top_bar()
         self._build_active_project_panel()
@@ -301,29 +304,109 @@ class IAECompleteGUI:
 
         self.btn_clear_db.configure(width=150 if lang_code == "tr" else 115)
 
+        self._sync_results_filter_menu()
+        self.results_search_entry.configure(
+            placeholder_text=self.tr("results_search_placeholder")
+        )
         self.update_evaluation_summary()
 
         self.set_active_project(self._active_project)
 
-    def update_evaluation_summary(self, entries=None):
+    def _result_filter_values(self):
+        return [self.tr(f"filter_{key}") for key in self._RESULT_FILTER_KEYS]
+
+    def _result_filter_key_from_display(self, display):
+        for key in self._RESULT_FILTER_KEYS:
+            if self.tr(f"filter_{key}") == display:
+                return key
+        return "all"
+
+    def _sync_results_filter_menu(self):
+        if not hasattr(self, "results_filter_menu"):
+            return
+        current = self._results_filter_key
+        self.results_filter_menu.configure(values=self._result_filter_values())
+        self.results_filter_var.set(self.tr(f"filter_{current}"))
+
+    def _rows_to_entries(self, rows):
+        entries = []
+        for student_id, status_text, log_details in rows:
+            status = SubmissionStatus.ERROR
+            for candidate in SubmissionStatus:
+                if candidate.value == status_text:
+                    status = candidate
+                    break
+            entries.append(ReportEntry(student_id, status, log_details))
+        return entries
+
+    def clear_result_rows(self):
+        self._tree_rows.clear()
+        self.tree.delete(*self.tree.get_children())
+        self.results_search_var.set("")
+        self._results_filter_key = "all"
+        self.results_filter_var.set(self.tr("filter_all"))
+        self.update_evaluation_summary([])
+
+    def add_result_row(self, student_id, status, log_details):
+        status_text = status.value if hasattr(status, "value") else str(status)
+        self._tree_rows.append((str(student_id), status_text, log_details or ""))
+        self._refresh_tree_view()
+
+    def load_result_rows(self, entries):
+        self._tree_rows.clear()
+        for entry in entries:
+            self._tree_rows.append(
+                (str(entry.student_id), entry.status.value, entry.log_details or "")
+            )
+        self._refresh_tree_view()
+
+    def _row_passes_filter(self, row):
+        student_id, status_text, _log = row
+        key = self._results_filter_key
+        if key == "success" and status_text != SubmissionStatus.SUCCESS.value:
+            return False
+        if key == "fail" and status_text != SubmissionStatus.FAIL.value:
+            return False
+        if key == "error" and status_text != SubmissionStatus.ERROR.value:
+            return False
+        query = self.results_search_var.get().strip().lower()
+        if query and query not in student_id.lower():
+            return False
+        return True
+
+    def _refresh_tree_view(self):
+        self.tree.delete(*self.tree.get_children())
+        visible_rows = []
+        for row in self._tree_rows:
+            if self._row_passes_filter(row):
+                self.tree.insert("", "end", values=row)
+                visible_rows.append(row)
+        all_entries = self._rows_to_entries(self._tree_rows)
+        visible_entries = self._rows_to_entries(visible_rows)
+        self.update_evaluation_summary(
+            visible_entries,
+            total_all=len(all_entries) if all_entries else None,
+        )
+
+    def _on_results_search_changed(self, *_args):
+        self._refresh_tree_view()
+
+    def _on_results_filter_selected(self, display):
+        self._results_filter_key = self._result_filter_key_from_display(display)
+        self._refresh_tree_view()
+
+    def update_evaluation_summary(self, entries=None, total_all=None):
         """Show total / success / fail / error counts below the results table."""
         if entries is None:
-            entries = []
-            for item in self.tree.get_children():
-                values = self.tree.item(item, "values")
-                if not values:
-                    continue
-                status_text = values[1] if len(values) > 1 else ""
-                status = SubmissionStatus.ERROR
-                for candidate in SubmissionStatus:
-                    if candidate.value == status_text:
-                        status = candidate
-                        break
-                log = values[2] if len(values) > 2 else ""
-                entries.append(ReportEntry(values[0], status, log))
+            visible_rows = [
+                row for row in self._tree_rows if self._row_passes_filter(row)
+            ]
+            entries = self._rows_to_entries(visible_rows)
+            if total_all is None:
+                total_all = len(self._tree_rows)
 
-        total = len(entries)
-        if total == 0:
+        visible_count = len(entries)
+        if visible_count == 0 and (total_all or 0) == 0:
             self.summary_lbl.configure(
                 text=self.tr("summary_empty"),
                 text_color=TEXT_MUTED,
@@ -332,17 +415,24 @@ class IAECompleteGUI:
 
         success = sum(1 for e in entries if e.status == SubmissionStatus.SUCCESS)
         fail = sum(1 for e in entries if e.status == SubmissionStatus.FAIL)
-        error = total - success - fail
+        error = visible_count - success - fail
 
-        self.summary_lbl.configure(
-            text=self.tr("summary_format").format(
-                total=total,
-                success=success,
-                fail=fail,
-                error=error,
-            ),
-            text_color=ACCENT_COLOR,
+        stats = self.tr("summary_format").format(
+            total=visible_count,
+            success=success,
+            fail=fail,
+            error=error,
         )
+        if total_all is not None and visible_count < total_all:
+            stats = (
+                self.tr("summary_showing").format(
+                    visible=visible_count, total=total_all
+                )
+                + "  |  "
+                + stats
+            )
+
+        self.summary_lbl.configure(text=stats, text_color=ACCENT_COLOR)
 
     def _prog_lang_values(self):
         return [
@@ -534,9 +624,13 @@ class IAECompleteGUI:
 
         log_header = ctk.CTkFrame(self.table_frame, fg_color="transparent")
         log_header.grid(row=0, column=0, sticky="ew", padx=20, pady=(16, 4))
+        log_header.grid_columnconfigure(0, weight=1)
+
+        log_title_col = ctk.CTkFrame(log_header, fg_color="transparent")
+        log_title_col.grid(row=0, column=0, sticky="w")
 
         self.log_title = ctk.CTkLabel(
-            log_header,
+            log_title_col,
             font=self.fonts.section,
             text_color=TEXT_COLOR,
             fg_color="transparent",
@@ -546,13 +640,50 @@ class IAECompleteGUI:
         self._register(self.log_title, "col_logs")
 
         self.log_hint = ctk.CTkLabel(
-            log_header,
+            log_title_col,
             font=self.fonts.caption,
             text_color=TEXT_MUTED,
             fg_color="transparent",
         )
         self.log_hint.pack(anchor="w", pady=(2, 0))
         self._register(self.log_hint, "log_detail_hint")
+
+        log_filters = ctk.CTkFrame(log_header, fg_color="transparent")
+        log_filters.grid(row=0, column=1, sticky="e", padx=(12, 0))
+
+        self.results_search_var = ctk.StringVar()
+        self.results_search_var.trace_add(
+            "write", self._on_results_search_changed
+        )
+        self.results_search_entry = self._create_entry(
+            log_filters,
+            width=180,
+            height=30,
+            placeholder_text=self.tr("results_search_placeholder"),
+            textvariable=self.results_search_var,
+        )
+        self.results_search_entry.pack(side="left", padx=(0, 8))
+
+        self.results_filter_var = ctk.StringVar(value=self.tr("filter_all"))
+        self.results_filter_menu = self._create_option_menu(
+            log_filters,
+            variable=self.results_filter_var,
+            values=self._result_filter_values(),
+            command=self._on_results_filter_selected,
+            width=140,
+            height=30,
+            fg_color=GLASS_BG_INNER,
+            button_color=GLASS_BG_INNER,
+            button_hover_color=GLASS_BORDER,
+            dropdown_fg_color=GLASS_BG,
+            dropdown_hover_color=GLASS_BORDER_LIGHT,
+            text_color=TEXT_COLOR,
+            dropdown_text_color=TEXT_COLOR,
+            font=self.fonts.caption,
+            corner_radius=GLASS_RADIUS_PILL,
+        )
+        self.results_filter_menu.pack(side="left")
+        self._option_menus.append(self.results_filter_menu)
 
         self.tree_glass = self._glass_panel(self.table_frame, inner=True)
         self.tree_glass.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 6))

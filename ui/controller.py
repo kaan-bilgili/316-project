@@ -175,23 +175,15 @@ class IAELogicController:
         self.ui.prog_lang_var.set(config_to_prog_lang(config))
 
     def _load_results_from_db(self, project_id):
-        self.ui.tree.delete(*self.ui.tree.get_children())
         repo = self._result_repo()
         if repo is None:
             self.loaded_results_count = 0
-            self.ui.update_evaluation_summary([])
+            self.ui.clear_result_rows()
             return
 
         entries = repo.load_by_project(project_id)
-
         self.loaded_results_count = len(entries)
-
-        for entry in entries:
-            self.ui.tree.insert(
-                "", "end", values=(entry.student_id, entry.status.value, entry.log_details),
-            )
-
-        self.ui.update_evaluation_summary(entries)
+        self.ui.load_result_rows(entries)
 
     def clear_history(self):
         if not messagebox.askyesno(
@@ -199,11 +191,10 @@ class IAELogicController:
         ):
             return
 
-        self.ui.tree.delete(*self.ui.tree.get_children())
+        self.ui.clear_result_rows()
         self.ui.set_status_message(
             "status_idle", text_color=self.ui.accent_color
         )
-        self.ui.update_evaluation_summary([])
         self.project_manager.clear_results()
         self.loaded_results_count = 0
 
@@ -264,8 +255,7 @@ class IAELogicController:
             messagebox.showerror(self.ui.tr("start_evaluation"), str(exc))
             return
 
-        self.ui.tree.delete(*self.ui.tree.get_children())
-        self.ui.update_evaluation_summary([])
+        self.ui.clear_result_rows()
         self._eval_live_entries = []
         if project:
             self.project_manager.clear_results()
@@ -292,7 +282,13 @@ class IAELogicController:
             self.ui.set_status_message(
                 "status_idle", text_color=self.ui.accent_color
             )
-            self.ui.update_evaluation_summary([])
+            if self._eval_live_entries:
+                self.ui.update_evaluation_summary(
+                    self._eval_live_entries,
+                    total_all=len(self._eval_live_entries),
+                )
+            else:
+                self.ui.update_evaluation_summary([])
             return
 
         self.ui.end_evaluation()
@@ -301,8 +297,11 @@ class IAELogicController:
             messagebox.showinfo(
                 self.ui.tr("start_evaluation"), self.ui.tr("err_no_students")
             )
-
-        self.ui.update_evaluation_summary(entries)
+        else:
+            self.ui.update_evaluation_summary(
+                self._eval_live_entries,
+                total_all=len(self._eval_live_entries),
+            )
 
         self.ui.set_status_message(
             "status_completed", text_color=self.ui.accent_color
@@ -341,17 +340,10 @@ class IAELogicController:
             entry = data.get("entry")
             if entry is not None:
                 self._eval_live_entries.append(entry)
-                self.ui.tree.insert(
-                    "",
-                    "end",
-                    values=(
-                        entry.student_id,
-                        entry.status.value,
-                        entry.log_details,
-                    ),
+                self.ui.add_result_row(
+                    entry.student_id, entry.status, entry.log_details
                 )
                 self._persist_result(entry)
-                self.ui.update_evaluation_summary(self._eval_live_entries)
             index = data.get("index", 0)
             total = data.get("total", 0)
             fraction = (index / total) if total else 1.0
