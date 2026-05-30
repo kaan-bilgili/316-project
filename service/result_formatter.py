@@ -1,3 +1,5 @@
+"""Req 9: Formats evaluation results for display and export."""
+
 from ui.models import ReportEntry, SubmissionStatus
 
 
@@ -10,19 +12,28 @@ class ResultFormatter:
 
     @staticmethod
     def summary_statistics(entries: list) -> str:
-        """Returns a one-line summary: totals broken down by status."""
+        """Returns a one-line summary broken down by status."""
         total = len(entries)
         success = sum(1 for e in entries if e.status == SubmissionStatus.SUCCESS)
-        fail = sum(1 for e in entries if e.status == SubmissionStatus.FAIL)
+        wrong = sum(1 for e in entries if e.status in (
+            SubmissionStatus.FAIL, SubmissionStatus.WRONG_OUTPUT
+        ))
         error = sum(1 for e in entries if e.status == SubmissionStatus.ERROR)
         return (
             f"Total: {total} | "
             f"Success: {success} | "
-            f"Fail: {fail} | "
+            f"Fail: {wrong} | "
             f"Error: {error}"
         )
 
     @staticmethod
     def format_detail(entry: ReportEntry) -> str:
-        """Returns a human-readable detail string for a single entry."""
-        return f"[{entry.status.value}] {entry.student_id}\n{entry.log_details}"
+        """Returns a human-readable detail block for a single entry."""
+        separator = "-" * 40
+        return (
+            f"{separator}\n"
+            f"Student : {entry.student_id}\n"
+            f"Status  : {entry.status.value}\n"
+            f"Details : {entry.log_details or 'No details.'}\n"
+            f"{separator}"
+        )
