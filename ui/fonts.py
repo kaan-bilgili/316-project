@@ -1,5 +1,3 @@
-"""Modern UI font stack with Plus Jakarta Sans and system fallbacks."""
-
 import tkinter as tk
 import tkinter.font as tkfont
 
@@ -18,7 +16,6 @@ FONT_CANDIDATES = (
 
 
 def resolve_font_family(root=None):
-    """Pick the first available geometric sans-serif family on this system."""
     owns_root = False
     if root is None:
         root = tk.Tk()
@@ -39,8 +36,6 @@ def resolve_font_family(root=None):
 
 
 class AppFonts:
-    """Central font definitions for CustomTkinter and ttk widgets."""
-
     SIZE_TITLE = 15
     SIZE_SECTION = 13
     SIZE_BODY = 12

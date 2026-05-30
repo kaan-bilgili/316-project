@@ -239,7 +239,6 @@ class IAECompleteGUI:
         self.lbl_project_meta.pack(anchor="w", pady=(2, 0))
 
     def set_active_project(self, project=None):
-        """Show or clear the currently open project on the main screen."""
         self._active_project = project
         if project is None:
             self.lbl_project_name.configure(
@@ -396,7 +395,6 @@ class IAECompleteGUI:
         self._refresh_tree_view()
 
     def update_evaluation_summary(self, entries=None, total_all=None):
-        """Show total / success / fail / error counts below the results table."""
         if entries is None:
             visible_rows = [
                 row for row in self._tree_rows if self._row_passes_filter(row)
@@ -758,7 +756,6 @@ class IAECompleteGUI:
         self._clear_tree_hover()
 
     def set_status_message(self, key, text_color=None, **fmt):
-        """Set status bar text from an i18n key; preserved across language changes."""
         self._status_message_key = key
         self._status_fmt = fmt
         text = self.tr(key).format(**fmt) if fmt else self.tr(key)

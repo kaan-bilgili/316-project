@@ -1,5 +1,3 @@
-"""UI data models for submission results and report entries."""
-
 from enum import Enum
 
 class SubmissionStatus(Enum):
@@ -14,7 +12,6 @@ class Result:
         self.is_success = self.compare_outputs(actual_output, expected_output)
 
     def compare_outputs(self, actual, expected):
-        # Req 8: Basit bir karşılaştırma algoritması (boşlukları temizler)
         return actual.strip() == expected.strip()
 
     def get_diff(self):

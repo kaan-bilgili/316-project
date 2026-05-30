@@ -1,5 +1,3 @@
-"""UI translation tables for the CustomTkinter app."""
-
 LANGUAGES = {
     "en": "English",
     "tr": "Türkçe",
