@@ -173,6 +173,7 @@ class IAELogicController:
         repo = self._result_repo()
         if repo is None:
             self.loaded_results_count = 0
+            self.ui.update_evaluation_summary([])
             return
 
         entries = repo.load_by_project(project_id)
@@ -183,6 +184,8 @@ class IAELogicController:
             self.ui.tree.insert(
                 "", "end", values=(entry.student_id, entry.status.value, entry.log_details),
             )
+
+        self.ui.update_evaluation_summary(entries)
 
     def clear_history(self):
         if not messagebox.askyesno(
@@ -195,6 +198,7 @@ class IAELogicController:
             text=self.ui.tr("status_idle"),
             text_color=self.ui.accent_color,
         )
+        self.ui.update_evaluation_summary([])
         self.project_manager.clear_results()
         self.loaded_results_count = 0
 
@@ -260,6 +264,7 @@ class IAELogicController:
             text_color="#f1c40f",
         )
         self.ui.tree.delete(*self.ui.tree.get_children())
+        self.ui.update_evaluation_summary([])
         if project:
             self.project_manager.clear_results()
         self.root.update_idletasks()
@@ -281,6 +286,7 @@ class IAELogicController:
                 text=self.ui.tr("status_idle"),
                 text_color=self.ui.accent_color,
             )
+            self.ui.update_evaluation_summary([])
             return
 
         if not entries:
@@ -293,6 +299,8 @@ class IAELogicController:
                 "", "end", values=(entry.student_id, entry.status.value, entry.log_details)
             )
             self._persist_result(entry)
+
+        self.ui.update_evaluation_summary(entries)
 
         project_name = (
             self.current_project_name

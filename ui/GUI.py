@@ -60,6 +60,7 @@ class IAECompleteGUI:
         self._build_layout()
         self._apply_language(lang_code)
         self._apply_styles()
+        self.update_evaluation_summary()
 
     def tr(self, key):
         return TRANSLATIONS[self.current_lang][key]
@@ -228,6 +229,47 @@ class IAECompleteGUI:
 
         self.btn_clear_db.configure(width=150 if lang_code == "tr" else 115)
 
+        self.update_evaluation_summary()
+
+    def update_evaluation_summary(self, entries=None):
+        """Show total / success / fail / error counts below the results table."""
+        if entries is None:
+            entries = []
+            for item in self.tree.get_children():
+                values = self.tree.item(item, "values")
+                if not values:
+                    continue
+                status_text = values[1] if len(values) > 1 else ""
+                status = SubmissionStatus.ERROR
+                for candidate in SubmissionStatus:
+                    if candidate.value == status_text:
+                        status = candidate
+                        break
+                log = values[2] if len(values) > 2 else ""
+                entries.append(ReportEntry(values[0], status, log))
+
+        total = len(entries)
+        if total == 0:
+            self.summary_lbl.configure(
+                text=self.tr("summary_empty"),
+                text_color=TEXT_MUTED,
+            )
+            return
+
+        success = sum(1 for e in entries if e.status == SubmissionStatus.SUCCESS)
+        fail = sum(1 for e in entries if e.status == SubmissionStatus.FAIL)
+        error = total - success - fail
+
+        self.summary_lbl.configure(
+            text=self.tr("summary_format").format(
+                total=total,
+                success=success,
+                fail=fail,
+                error=error,
+            ),
+            text_color=ACCENT_COLOR,
+        )
+
     def _prog_lang_values(self):
         return [
             self.tr("select_prog_lang"),
@@ -391,9 +433,20 @@ class IAECompleteGUI:
         self._register(self.log_title, "col_logs")
 
         self.tree_glass = self._glass_panel(self.table_frame, inner=True)
-        self.tree_glass.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 16))
+        self.tree_glass.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 6))
         self.table_frame.grid_rowconfigure(1, weight=1)
         self.table_frame.grid_columnconfigure(0, weight=1)
+
+        self.summary_lbl = ctk.CTkLabel(
+            self.table_frame,
+            text="",
+            font=self.fonts.muted,
+            text_color=TEXT_MUTED,
+            fg_color="transparent",
+            anchor="w",
+        )
+        self.summary_lbl.grid(row=2, column=0, sticky="w", padx=20, pady=(0, 14))
+        self._register(self.summary_lbl, "summary_empty")
 
         self.style = ttk.Style()
         self.style.theme_use("clam")
