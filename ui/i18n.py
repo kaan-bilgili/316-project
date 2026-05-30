@@ -42,6 +42,11 @@ TRANSLATIONS = {
         "col_student_id": "STUDENT ID",
         "col_status": "EVALUATION STATUS",
         "col_logs": "COMPILATION LOGS / OUTPUT DIFFERENCES",
+        "log_detail_hint": "Double-click a row to view the full log.",
+        "log_detail_title": "Log — {student_id}",
+        "log_detail_status": "Status: {status}",
+        "log_detail_empty": "(No log details recorded.)",
+        "log_detail_close": "Close",
         "help_title": "IAE Manual",
         "help_body": (
             "Set configurations, provide input folders, and press START EVALUATION.\n\n"
@@ -136,6 +141,11 @@ TRANSLATIONS = {
         "col_student_id": "ÖĞRENCİ NO",
         "col_status": "DEĞERLENDİRME DURUMU",
         "col_logs": "DERLEME KAYITLARI / ÇIKTI FARKLARI",
+        "log_detail_hint": "Tam kaydı görmek için satıra çift tıklayın.",
+        "log_detail_title": "Kayıt — {student_id}",
+        "log_detail_status": "Durum: {status}",
+        "log_detail_empty": "(Kayıt metni yok.)",
+        "log_detail_close": "Kapat",
         "help_title": "IAE Kılavuzu",
         "help_body": (
             "Yapılandırmayı ayarlayın, girdi klasörlerini seçin ve DEĞERLENDİRMEYİ BAŞLAT'a basın.\n\n"
