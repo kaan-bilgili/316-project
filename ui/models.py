@@ -6,6 +6,7 @@ class SubmissionStatus(Enum):
     SUCCESS = "Success"
     FAIL = "Fail"
     ERROR = "Compile/Runtime Error"
+    WRONG_OUTPUT = "Wrong Output"
 
 class Result:
     def __init__(self, actual_output, expected_output):
