@@ -8,7 +8,7 @@ from service.report_generator import ReportGenerator
 from ui.GUI import IAECompleteGUI
 from ui.configuration_builder import build_configuration, config_to_prog_lang
 from ui.dialogs import NewProjectDialog
-
+from ui.config_manager_dialog import ConfigManagerDialog
 
 class IAELogicController:
     def __init__(self, root):
@@ -18,21 +18,29 @@ class IAELogicController:
         self.config_repo = ConfigurationRepository()
         self.evaluation_service = EvaluationService()
         self.report_generator = ReportGenerator()
+        self.current_project_name = None
+        self.loaded_results_count = 0
+        self._eval_live_entries = []
 
         self.ui.btn_create.configure(command=self.create_project)
         self.ui.btn_open.configure(command=self.open_project)
+        self.ui.btn_save.configure(command=self.save_project)
         self.ui.btn_clear_db.configure(command=self.clear_history)
         self.ui.btn_browse_path.configure(command=self.browse_compiler)
         self.ui.btn_zip.configure(command=self.select_zip_folder)
         self.ui.btn_output.configure(command=self.select_output_file)
         self.ui.btn_run.configure(command=self.start_evaluation_process)
         self.ui.btn_export.configure(command=self.export_report)
+        self.ui.btn_manage_configs.configure(command=self.manage_configurations)
 
     def browse_compiler(self):
         path = filedialog.askopenfilename(title=self.ui.tr("dlg_compiler"))
         if path:
             self.ui.path_entry.delete(0, "end")
             self.ui.path_entry.insert(0, path)
+
+    def manage_configurations(self):
+        ConfigManagerDialog(self.root, self.config_repo, self.ui.tr)
 
     def select_zip_folder(self):
         path = filedialog.askdirectory(title=self.ui.tr("dlg_zip_folder"))
@@ -90,6 +98,7 @@ class IAELogicController:
 
         try:
             self.project_manager.close_project()
+            self.ui.set_active_project(None)
             self.project_manager.new_project(
                 name=name,
                 description=description,
@@ -98,8 +107,19 @@ class IAELogicController:
                 expected_output_path=self.ui._output_path,
                 db_path=db_path,
             )
+            project = self.project_manager.get_current_project()
+
+            self.current_project_name = project.name
+            self.ui.set_active_project(project)
+
+            self.ui.set_status_message(
+                "status_project_created",
+                text_color=self.ui.accent_color,
+                name=project.name,
+            )
             messagebox.showinfo(
-                self.ui.tr("new_project_title"), self.ui.tr("project_created")
+                self.ui.tr("new_project_title"),
+                self.ui.tr("project_created_msg").format(name=name),
             )
         except Exception as exc:
             messagebox.showerror(self.ui.tr("new_project_title"), str(exc))
@@ -114,19 +134,74 @@ class IAELogicController:
 
         try:
             self.project_manager.close_project()
+            self.ui.set_active_project(None)
             project = self.project_manager.open_project(db_path)
+            if project is None:
+                raise ValueError(self.ui.tr("err_invalid_project_db"))
             self.ui.set_zip_path(project.submissions_dir)
             self.ui.set_output_path(project.expected_output_path)
             self._load_configuration(project.configuration_name)
             self._load_results_from_db(project.id)
+
+            self.current_project_name = project.name
+            self.ui.set_active_project(project)
+
+            self.ui.set_status_message(
+                "status_project_loaded",
+                text_color=self.ui.accent_color,
+                name=project.name,
+            )
             messagebox.showinfo(
-                self.ui.tr("open_project"), self.ui.tr("project_opened")
+                self.ui.tr("open_project"),
+                self.ui.tr("project_opened_body").format(
+                    name=project.name,
+                    configuration=project.configuration_name,
+                    description=project.description or "—",
+                    count=self.loaded_results_count,
+                ),
             )
         except Exception as exc:
             messagebox.showerror(
                 self.ui.tr("open_project"),
                 f"{self.ui.tr('err_open_project')}\n{exc}",
             )
+
+    def save_project(self):
+        project = self.project_manager.get_current_project()
+        if project is None:
+            messagebox.showwarning(
+                self.ui.tr("save_project"),
+                self.ui.tr("err_no_project_to_save"),
+            )
+            return
+
+        if not self.ui._zip_path or not self.ui._output_path:
+            messagebox.showwarning(
+                self.ui.tr("save_project"), self.ui.tr("err_project_paths")
+            )
+            return
+
+        project.submissions_dir = self.ui._zip_path
+        project.expected_output_path = self.ui._output_path
+
+        try:
+            configuration = self._build_configuration(project.configuration_name)
+            if configuration is not None:
+                self.config_repo.save(configuration)
+            self.project_manager.save_project()
+            self.current_project_name = project.name
+            self.ui.set_active_project(project)
+            self.ui.set_status_message(
+                "status_project_saved",
+                text_color=self.ui.accent_color,
+                name=project.name,
+            )
+            messagebox.showinfo(
+                self.ui.tr("save_project"),
+                self.ui.tr("project_saved_msg").format(name=project.name),
+            )
+        except Exception as exc:
+            messagebox.showerror(self.ui.tr("save_project"), str(exc))
 
     def _load_configuration(self, configuration_name):
         config = self.config_repo.load(configuration_name)
@@ -138,15 +213,15 @@ class IAELogicController:
         self.ui.prog_lang_var.set(config_to_prog_lang(config))
 
     def _load_results_from_db(self, project_id):
-        self.ui.tree.delete(*self.ui.tree.get_children())
         repo = self._result_repo()
         if repo is None:
+            self.loaded_results_count = 0
+            self.ui.clear_result_rows()
             return
 
-        for entry in repo.load_by_project(project_id):
-            self.ui.tree.insert(
-                "", "end", values=(entry.student_id, entry.status.value, entry.log_details)
-            )
+        entries = repo.load_by_project(project_id)
+        self.loaded_results_count = len(entries)
+        self.ui.load_result_rows(entries)
 
     def clear_history(self):
         if not messagebox.askyesno(
@@ -154,12 +229,12 @@ class IAELogicController:
         ):
             return
 
-        self.ui.tree.delete(*self.ui.tree.get_children())
-        self.ui.status_lbl.configure(
-            text=self.ui.tr("status_idle"),
-            text_color=self.ui.accent_color,
+        self.ui.clear_result_rows()
+        self.ui.set_status_message(
+            "status_idle", text_color=self.ui.accent_color
         )
         self.project_manager.clear_results()
+        self.loaded_results_count = 0
 
     def _build_configuration(self, config_name):
         return build_configuration(
@@ -218,13 +293,13 @@ class IAELogicController:
             messagebox.showerror(self.ui.tr("start_evaluation"), str(exc))
             return
 
-        self.ui.status_lbl.configure(
-            text=self.ui.tr("status_compiling"),
-            text_color="#f1c40f",
-        )
-        self.ui.tree.delete(*self.ui.tree.get_children())
+        self.ui.clear_result_rows()
+        self._eval_live_entries = []
         if project:
             self.project_manager.clear_results()
+
+        self.ui.begin_evaluation()
+        self.ui.set_evaluation_progress(0, self.ui.tr("status_compiling"))
         self.root.update_idletasks()
 
         try:
@@ -234,33 +309,92 @@ class IAELogicController:
                 configuration,
                 runtime_args=self.ui.args_entry.get().strip(),
                 timeout=timeout,
+                progress_callback=self._on_evaluation_progress,
             )
         except Exception as exc:
             messagebox.showerror(
                 self.ui.tr("start_evaluation"),
                 f"{self.ui.tr('err_evaluation')}\n{exc}",
             )
-            self.ui.status_lbl.configure(
-                text=self.ui.tr("status_idle"),
-                text_color=self.ui.accent_color,
+            self.ui.end_evaluation()
+            self.ui.set_status_message(
+                "status_idle", text_color=self.ui.accent_color
             )
+            if self._eval_live_entries:
+                self.ui.update_evaluation_summary(
+                    self._eval_live_entries,
+                    total_all=len(self._eval_live_entries),
+                )
+            else:
+                self.ui.update_evaluation_summary([])
             return
+
+        self.ui.end_evaluation()
 
         if not entries:
             messagebox.showinfo(
                 self.ui.tr("start_evaluation"), self.ui.tr("err_no_students")
             )
-
-        for entry in entries:
-            self.ui.tree.insert(
-                "", "end", values=(entry.student_id, entry.status.value, entry.log_details)
+        else:
+            self.ui.update_evaluation_summary(
+                self._eval_live_entries,
+                total_all=len(self._eval_live_entries),
             )
-            self._persist_result(entry)
 
-        self.ui.status_lbl.configure(
-            text=self.ui.tr("status_completed"),
-            text_color=self.ui.accent_color,
+        self.ui.set_status_message(
+            "status_completed", text_color=self.ui.accent_color
         )
+
+    def _on_evaluation_progress(self, event, **data):
+        if event == "zip_start":
+            self.ui.set_evaluation_progress(0, self.ui.tr("eval_progress_zip"))
+        elif event == "zip_done":
+            self.ui.set_evaluation_progress(0.05, self.ui.tr("status_compiling"))
+        elif event == "eval_start":
+            total = data.get("total", 0)
+            if total == 0:
+                self.ui.set_evaluation_progress(
+                    0, self.ui.tr("eval_progress_none")
+                )
+            else:
+                self.ui.set_evaluation_progress(
+                    0.08,
+                    self.ui.tr("eval_progress_start").format(total=total),
+                )
+        elif event == "student_start":
+            index = data.get("index", 0)
+            total = data.get("total", 0)
+            student_id = data.get("student_id", "")
+            fraction = ((index - 1) / total) if total else 0.0
+            self.ui.set_evaluation_progress(
+                0.08 + 0.92 * fraction,
+                self.ui.tr("eval_progress_student").format(
+                    student_id=student_id,
+                    current=index,
+                    total=total,
+                ),
+            )
+        elif event == "student_done":
+            entry = data.get("entry")
+            if entry is not None:
+                self._eval_live_entries.append(entry)
+                self.ui.add_result_row(
+                    entry.student_id, entry.status, entry.log_details
+                )
+                self._persist_result(entry)
+            index = data.get("index", 0)
+            total = data.get("total", 0)
+            fraction = (index / total) if total else 1.0
+            student_id = data.get("student_id", "")
+            self.ui.set_evaluation_progress(
+                0.08 + 0.92 * fraction,
+                self.ui.tr("eval_progress_student").format(
+                    student_id=student_id,
+                    current=index,
+                    total=total,
+                ),
+            )
+        self.root.update_idletasks()
 
     def _result_repo(self):
         db = self.project_manager._db

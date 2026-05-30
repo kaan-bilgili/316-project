@@ -1,4 +1,4 @@
-from service.error_handler import SubmissionStatus
+from ui.models import SubmissionStatus
 
 
 class OutputComparator:

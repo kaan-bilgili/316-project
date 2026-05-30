@@ -49,3 +49,9 @@ class Compiler:
                 status="compile_error",
                 error_log="Compilation timed out.",
             )
+        except Exception as e:
+            return StudentResult(
+                student_id=student_id,
+                status="compile_error",
+                error_log=f"Compiler Error: {str(e)}",
+            )

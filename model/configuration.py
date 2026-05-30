@@ -8,13 +8,16 @@ def _normalize_run_command(command: str) -> str:
     return command
 
 
+DEFAULT_RUN_COMMAND = "main.exe" if sys.platform == "win32" else "./main.exe"
+
+
 @dataclass
 class Configuration:
     name: str
     compiler_path: str = "gcc"
     source_filename: str = "main.c"
     compiler_args: str = "-o main.exe"
-    run_command: str = "./main.exe"
+    run_command: str = DEFAULT_RUN_COMMAND
     is_interpreted: bool = False
 
     def validate(self) -> None:
@@ -25,6 +28,8 @@ class Configuration:
             raise ValueError("Compiler path is required.")
         if not self.source_filename.strip():
             raise ValueError("Source filename is required.")
+        if not self.run_command.strip():
+            raise ValueError("Run command is required.")
 
     def to_dict(self) -> dict:
         """Converts the configuration to a dict for JSON storage."""
@@ -42,14 +47,13 @@ class Configuration:
     @staticmethod
     def from_dict(data: dict) -> "Configuration":
         """Creates a Configuration instance from a JSON dict."""
-        default_run = "main.exe" if sys.platform == "win32" else "./main.exe"
         configuration = Configuration(
             name=data["name"],
             compiler_path=data.get("compiler_path", "gcc"),
             source_filename=data.get("source_filename", "main.c"),
             compiler_args=data.get("compiler_args", "-o main.exe"),
             run_command=_normalize_run_command(
-                data.get("run_command", default_run)
+                data.get("run_command", DEFAULT_RUN_COMMAND)
             ),
             is_interpreted=data.get("is_interpreted", False),
         )

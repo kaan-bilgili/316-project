@@ -20,6 +20,17 @@ class ConfigurationRepository:
         with open(self._get_path(configuration.name), "w", encoding="utf-8") as file:
             json.dump(configuration.to_dict(), file, indent=4)
 
+    def update(self, old_name: str, configuration: Configuration) -> None:
+        """Updates an existing configuration. Handles name changes."""
+        self._validate_name(old_name)
+        configuration.validate()
+        self._validate_name(configuration.name)
+
+        if old_name != configuration.name:
+            self.delete(old_name)
+
+        self.save(configuration)
+
     def load(self, name: str) -> Optional[Configuration]:
         """Loads a configuration by name. Returns None if it does not exist."""
         self._validate_name(name)
@@ -47,17 +58,34 @@ class ConfigurationRepository:
         os.remove(path)
         return True
 
+    def export_to_file(self, name: str, destination_path: str) -> None:
+        """Exports a configuration to a specified file path."""
+        self._validate_name(name)
+        config = self.load(name)
+        if config is None:
+            raise FileNotFoundError(f"Configuration '{name}' not found.")
+        with open(destination_path, "w", encoding="utf-8") as file:
+            json.dump(config.to_dict(), file, indent=4)
+
+    def import_from_file(self, source_path: str) -> Configuration:
+        """Imports a configuration from a specified file path."""
+        if not os.path.exists(source_path):
+            raise FileNotFoundError(f"File not found: {source_path}")
+        with open(source_path, "r", encoding="utf-8") as file:
+            data = json.load(file)
+        config = Configuration.from_dict(data)
+        self.save(config)
+        return config
+
     def load_all(self) -> List[Configuration]:
         """Loads all JSON configurations from the repository folder."""
         if not os.path.isdir(self.configurations_dir):
             return []
 
         configurations = []
-
         for filename in os.listdir(self.configurations_dir):
             if filename.endswith(".json"):
                 path = os.path.join(self.configurations_dir, filename)
-
                 with open(path, "r", encoding="utf-8") as file:
                     configurations.append(Configuration.from_dict(json.load(file)))
 
