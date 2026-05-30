@@ -1,5 +1,6 @@
 import customtkinter as ctk
 from tkinter import ttk, messagebox
+from ui.dialogs import LogDetailDialog
 from ui.models import SubmissionStatus, ReportEntry
 from ui.i18n import LANGUAGES, TRANSLATIONS
 from ui.fonts import AppFonts, resolve_font_family
@@ -498,15 +499,27 @@ class IAECompleteGUI:
         self.table_frame = self._glass_panel(self.main_scroll)
         self.table_frame.grid(row=2, column=0, sticky="nsew")
 
+        log_header = ctk.CTkFrame(self.table_frame, fg_color="transparent")
+        log_header.grid(row=0, column=0, sticky="ew", padx=20, pady=(16, 4))
+
         self.log_title = ctk.CTkLabel(
-            self.table_frame,
+            log_header,
             font=self.fonts.section,
             text_color=TEXT_COLOR,
             fg_color="transparent",
         )
-        self.log_title.grid(row=0, column=0, sticky="w", padx=20, pady=(16, 4))
+        self.log_title.pack(anchor="w")
         self._section_labels.append(self.log_title)
         self._register(self.log_title, "col_logs")
+
+        self.log_hint = ctk.CTkLabel(
+            log_header,
+            font=self.fonts.caption,
+            text_color=TEXT_MUTED,
+            fg_color="transparent",
+        )
+        self.log_hint.pack(anchor="w", pady=(2, 0))
+        self._register(self.log_hint, "log_detail_hint")
 
         self.tree_glass = self._glass_panel(self.table_frame, inner=True)
         self.tree_glass.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 6))
@@ -546,6 +559,19 @@ class IAECompleteGUI:
         self.tree.bind("<Motion>", self._on_tree_motion)
         self.tree.bind("<Leave>", self._on_tree_leave)
         self.tree.bind("<<TreeviewSelect>>", lambda _e: self._clear_tree_hover())
+        self.tree.bind("<Double-Button-1>", self._on_tree_double_click)
+
+    def _on_tree_double_click(self, event):
+        item = self.tree.identify_row(event.y)
+        if not item:
+            return
+        values = self.tree.item(item, "values")
+        if len(values) < 3:
+            return
+        self.show_log_detail(values[0], values[1], values[2])
+
+    def show_log_detail(self, student_id, status, log_text):
+        LogDetailDialog(self.root, self, student_id, status, log_text)
 
     def _clear_tree_hover(self):
         for item in self.tree.get_children():
