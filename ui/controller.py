@@ -40,7 +40,25 @@ class IAELogicController:
             self.ui.path_entry.insert(0, path)
 
     def manage_configurations(self):
-        ConfigManagerDialog(self.root, self.config_repo, self.ui.tr)
+        dlg = ConfigManagerDialog(self.root, self.config_repo, self.ui.tr)
+        self.root.wait_window(dlg)
+        self._refresh_config_dropdown()
+
+    def _refresh_config_dropdown(self):
+        """Config repo'daki isimleri dropdown'a ekler ve seçim callback'ini bağlar."""
+        saved = [cfg.name for cfg in self.config_repo.load_all()]
+        self.ui.refresh_config_dropdown(saved)
+        self.ui.lang_cb.configure(command=self._on_lang_or_config_selected)
+
+    def _on_lang_or_config_selected(self, value):
+        """Dropdown'dan bir config adı seçilince compiler path'i otomatik yükler."""
+        presets = {"C (GCC)", "Java (JDK)", "C++ (G++)", "Python (Interpreter)"}
+        if value in presets or value == self.ui.tr("select_prog_lang"):
+            return
+        config = self.config_repo.load(value)
+        if config:
+            self.ui.path_entry.delete(0, "end")
+            self.ui.path_entry.insert(0, config.compiler_path)
 
     def select_zip_folder(self):
         path = filedialog.askdirectory(title=self.ui.tr("dlg_zip_folder"))
@@ -111,6 +129,7 @@ class IAELogicController:
 
             self.current_project_name = project.name
             self.ui.set_active_project(project)
+            self._load_configuration(configuration_name)
 
             self.ui.set_status_message(
                 "status_project_created",
@@ -210,7 +229,17 @@ class IAELogicController:
 
         self.ui.path_entry.delete(0, "end")
         self.ui.path_entry.insert(0, config.compiler_path)
-        self.ui.prog_lang_var.set(config_to_prog_lang(config))
+
+        # Önce dropdown'u güncelle (custom config ismi yoksa ekle)
+        self._refresh_config_dropdown()
+
+        # Preset mi yoksa custom config mi?
+        try:
+            lang = config_to_prog_lang(config)
+        except ValueError:
+            lang = configuration_name  # Custom config adını kullan
+
+        self.ui.prog_lang_var.set(lang)
 
     def _load_results_from_db(self, project_id):
         repo = self._result_repo()
@@ -237,9 +266,16 @@ class IAELogicController:
         self.loaded_results_count = 0
 
     def _build_configuration(self, config_name):
+        # Eğer kaydedilmiş bir config seçildiyse doğrudan yükle
+        selected = self.ui.prog_lang_var.get()
+        presets = {"C (GCC)", "Java (JDK)", "C++ (G++)", "Python (Interpreter)"}
+        if selected not in presets and selected != self.ui.tr("select_prog_lang"):
+            loaded = self.config_repo.load(selected)
+            if loaded:
+                return loaded
         return build_configuration(
             config_name,
-            self.ui.prog_lang_var.get(),
+            selected,
             self.ui.path_entry.get(),
             self.ui.tr("select_prog_lang"),
         )
@@ -260,7 +296,10 @@ class IAELogicController:
                 self.ui.tr("start_evaluation"), self.ui.tr("err_no_prog_lang")
             )
             return False
-        if not self.ui.path_entry.get().strip():
+        # Kaydedilmiş bir config seçildiyse compiler path kontrolü atla
+        selected = self.ui.prog_lang_var.get()
+        presets = {"C (GCC)", "Java (JDK)", "C++ (G++)", "Python (Interpreter)"}
+        if selected in presets and not self.ui.path_entry.get().strip():
             messagebox.showwarning(
                 self.ui.tr("start_evaluation"), self.ui.tr("err_no_compiler")
             )
