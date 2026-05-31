@@ -293,8 +293,13 @@ class IAECompleteGUI:
         self.ui_lang_var.set(LANGUAGES[lang_code])
 
         current_prog = self.prog_lang_var.get()
-        self.lang_cb.configure(values=self._prog_lang_values())
-        if current_prog in ("C (GCC)", "Java (JDK)", "Python (Interpreter)"):
+        # Mevcut değerleri koru (kaydedilmiş config isimleri dahil)
+        existing_values = list(self.lang_cb.cget("values")) if hasattr(self, "lang_cb") else []
+        presets = {"C (GCC)", "Java (JDK)", "C++ (G++)", "Python (Interpreter)"}
+        saved_extras = [v for v in existing_values if v not in presets]
+        new_values = self._prog_lang_values() + saved_extras
+        self.lang_cb.configure(values=new_values)
+        if current_prog in new_values and current_prog != self.tr("select_prog_lang"):
             self.prog_lang_var.set(current_prog)
         else:
             self.prog_lang_var.set(self.tr("select_prog_lang"))
@@ -449,6 +454,17 @@ class IAECompleteGUI:
             "C++ (G++)",
             "Python (Interpreter)",
         ]
+
+    def refresh_config_dropdown(self, saved_config_names=None):
+        """Dropdown'a kaydedilmiş config isimlerini de ekler."""
+        values = self._prog_lang_values()
+        if saved_config_names:
+            # Preset olmayan isimleri ekle (duplicate olmasın)
+            presets = {"C (GCC)", "Java (JDK)", "C++ (G++)", "Python (Interpreter)"}
+            for name in saved_config_names:
+                if name not in presets:
+                    values.append(name)
+        self.lang_cb.configure(values=values)
 
     def _build_layout(self):
         pad = self._COMPACT_PAD
