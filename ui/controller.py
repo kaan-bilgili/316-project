@@ -66,7 +66,7 @@ class IAELogicController:
                 if saved:
                     self.config_repo.save(saved)
                     config_names = [saved.name]
-            except ValueError as exc:
+            except (ValueError, OSError) as exc:
                 messagebox.showerror(self.ui.tr("new_project_title"), str(exc))
                 return
 
@@ -289,7 +289,7 @@ class IAELogicController:
                 )
                 return
             self.config_repo.save(configuration)
-        except ValueError as exc:
+        except (ValueError, OSError) as exc:
             messagebox.showerror(self.ui.tr("start_evaluation"), str(exc))
             return
 

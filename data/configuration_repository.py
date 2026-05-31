@@ -1,16 +1,38 @@
 import json
 import os
+import shutil
 import tempfile
 from typing import List, Optional
 
 from model.configuration import Configuration
+from utils.path_utils import find_resource_dir, get_configurations_dir
 
 
 class ConfigurationRepository:
 
-    def __init__(self, configurations_dir: str = "configurations"):
+    def __init__(self, configurations_dir: str | None = None):
         """Initializes the repository with a folder for JSON configuration files."""
-        self.configurations_dir = configurations_dir
+        self.configurations_dir = configurations_dir or get_configurations_dir()
+        self._seed_default_configurations()
+
+    def _seed_default_configurations(self) -> None:
+        bundled_dir = find_resource_dir("configurations")
+        if not bundled_dir:
+            legacy_dir = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)), "..", "configurations"
+            )
+            legacy_dir = os.path.normpath(legacy_dir)
+            if os.path.isdir(legacy_dir):
+                bundled_dir = legacy_dir
+        if not bundled_dir:
+            return
+
+        for filename in os.listdir(bundled_dir):
+            if not filename.endswith(".json"):
+                continue
+            destination = os.path.join(self.configurations_dir, filename)
+            if not os.path.exists(destination):
+                shutil.copy2(os.path.join(bundled_dir, filename), destination)
 
     def save(self, configuration: Configuration) -> None:
         """Saves a configuration as a JSON file."""

@@ -61,6 +61,37 @@ def get_resource_path(relative_path: str) -> str:
     return next(iter_resource_paths(relative_path))
 
 
+def find_resource_dir(relative_dir: str) -> str | None:
+    """Return the first existing directory path for a bundled resource folder."""
+    for candidate in iter_resource_paths(relative_dir):
+        if os.path.isdir(candidate):
+            return candidate
+    return None
+
+
+def get_user_data_dir() -> str:
+    """Return a writable per-user folder (safe when installed under Program Files)."""
+    if sys.platform.startswith("win"):
+        base = os.environ.get("APPDATA") or os.path.expanduser("~")
+    elif sys.platform == "darwin":
+        base = os.path.join(os.path.expanduser("~"), "Library", "Application Support")
+    else:
+        base = os.environ.get(
+            "XDG_DATA_HOME",
+            os.path.join(os.path.expanduser("~"), ".local", "share"),
+        )
+    path = os.path.join(base, "IAE")
+    os.makedirs(path, exist_ok=True)
+    return path
+
+
+def get_configurations_dir() -> str:
+    """Writable configuration storage (not next to the installed executable)."""
+    path = os.path.join(get_user_data_dir(), "configurations")
+    os.makedirs(path, exist_ok=True)
+    return path
+
+
 def normalize_to_absolute_path(path: str) -> str:
     """Normalize relative paths to absolute paths from current working dir."""
     if not path:
