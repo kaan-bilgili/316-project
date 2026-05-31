@@ -493,7 +493,14 @@ class IAECompleteGUI:
         self.btn_clear_db.pack(side="right", padx=(4, 0))
         self._register(self.btn_clear_db, "clear_history")
 
-        self.eval_progress_row = ctk.CTkFrame(self.project_frame, fg_color="transparent")
+        self._eval_progress_row_height = 32
+        self.eval_progress_row = ctk.CTkFrame(
+            self.project_frame,
+            fg_color="transparent",
+            height=self._eval_progress_row_height,
+        )
+        self.eval_progress_row.pack(fill="x", after=self.project_toolbar)
+        self.eval_progress_row.pack_propagate(False)
         self.eval_progress_bar = ctk.CTkProgressBar(
             self.eval_progress_row,
             height=10,
@@ -502,7 +509,6 @@ class IAECompleteGUI:
             fg_color=GLASS_BG_INNER,
             border_width=0,
         )
-        self.eval_progress_bar.pack(fill="x", padx=18, pady=(8, 14))
         self.eval_progress_bar.set(0)
         self._eval_busy_buttons = (
             self.btn_run,
@@ -785,13 +791,14 @@ class IAECompleteGUI:
     def begin_evaluation(self):
         self._evaluation_running = True
         self._set_evaluation_controls_busy(True)
-        self.eval_progress_row.pack(fill="x", after=self.project_toolbar)
+        if not self.eval_progress_bar.winfo_ismapped():
+            self.eval_progress_bar.pack(fill="x", padx=18, pady=(8, 14))
         self.eval_progress_bar.set(0)
 
     def end_evaluation(self):
         self._evaluation_running = False
         self._set_evaluation_controls_busy(False)
-        self.eval_progress_row.pack_forget()
+        self.eval_progress_bar.pack_forget()
         self.eval_progress_bar.set(0)
 
     def set_evaluation_progress(self, fraction, status_text=None):
