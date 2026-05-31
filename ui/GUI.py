@@ -2,6 +2,9 @@ import os
 
 import customtkinter as ctk
 from tkinter import ttk, messagebox
+import os
+import sys
+import subprocess
 from utils.path_utils import get_resource_path
 from ui.dialogs import LogDetailDialog
 from ui.models import SubmissionStatus, ReportEntry
@@ -1043,6 +1046,27 @@ class IAECompleteGUI:
         return ACCENT_COLOR
 
     def show_help(self):
+        # Try to open the PDF manual first (works with PyInstaller via get_resource_path)
+        try:
+            pdf_path = get_resource_path("ui/assets/manual.pdf")
+        except Exception:
+            pdf_path = None
+
+        if pdf_path and os.path.exists(pdf_path):
+            try:
+                if sys.platform.startswith("win"):
+                    os.startfile(pdf_path)
+                    return
+                if sys.platform == "darwin":
+                    subprocess.Popen(["open", pdf_path])
+                    return
+                # Linux/other
+                subprocess.Popen(["xdg-open", pdf_path])
+                return
+            except Exception as ex:
+                messagebox.showwarning(self.tr("help_title"), f"Could not open PDF manual:\n{ex}")
+
+        # Fallback: open the text manual in an internal window
         manual_path = get_resource_path("manual.txt")
 
         win = ctk.CTkToplevel(self.root)
@@ -1065,9 +1089,12 @@ class IAECompleteGUI:
         )
         textbox.pack(fill="both", expand=True, padx=16, pady=16)
 
-        if os.path.exists(manual_path):
-            with open(manual_path, "r", encoding="utf-8") as f:
-                textbox.insert("end", f.read())
+        if manual_path and os.path.exists(manual_path):
+            try:
+                with open(manual_path, "r", encoding="utf-8") as f:
+                    textbox.insert("end", f.read())
+            except Exception:
+                textbox.insert("end", "Manual file not found.")
         else:
             textbox.insert("end", "Manual file not found.")
 
