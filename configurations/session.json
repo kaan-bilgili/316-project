@@ -1,0 +1,8 @@
+{
+    "name": "session",
+    "compiler_path": "C:\\msys64\\mingw64\\bin\\gcc.exe",
+    "source_filename": "main.c",
+    "compiler_args": "-o main.exe",
+    "run_command": "main.exe",
+    "is_interpreted": false
+}
