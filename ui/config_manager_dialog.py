@@ -54,7 +54,7 @@ class ConfigManagerDialog(ctk.CTkToplevel):
         self.config_repo = config_repo
         self.tr = tr
         self.title(tr("manage_configs_title"))
-        self.geometry("680x420")
+        self.geometry("800x420")
         self.resizable(False, False)
         self.configure(fg_color=BG_COLOR)
         self.transient(parent)
