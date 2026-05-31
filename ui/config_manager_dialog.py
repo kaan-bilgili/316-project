@@ -34,7 +34,7 @@ class ConfigManagerDialog(ctk.CTkToplevel):
         self.config_repo = config_repo
         self.tr = tr
         self.title(tr("manage_configs_title"))
-        self.geometry("680x420")
+        self.geometry("800x420")
         self.resizable(False, False)
         self.configure(fg_color=BG_COLOR)
         self.transient(parent)
@@ -88,19 +88,19 @@ class ConfigManagerDialog(ctk.CTkToplevel):
             ).pack(side="left", expand=True)
 
             _cyber_button(
-                row, text=self.tr("edit"), width=70,
+                row, text=self.tr("edit"), width=90,
                 command=lambda c=config: self._edit_config(c),
             ).pack(side="right", padx=(4, 0))
 
             _cyber_button(
-                row, text=self.tr("delete"), width=70,
+                row, text=self.tr("delete"), width=90,
                 fg_override=("#DC2626", "#B91C1C"),
                 hover_override=("#B91C1C", "#991B1B"),
                 command=lambda c=config: self._delete_config(c),
             ).pack(side="right", padx=(4, 0))
 
             _cyber_button(
-                row, text=self.tr("export_config"), width=70,
+                row, text=self.tr("export_config"), width=90,
                 command=lambda c=config: self._export_config(c),
             ).pack(side="right", padx=(4, 0))
 
