@@ -2,24 +2,63 @@ import os
 import sys
 
 
-def get_resource_path(relative_path: str) -> str:
-    """Return an absolute path to bundled resources (supports PyInstaller)."""
-    # When bundled by PyInstaller `sys.frozen` is True.
-    # - In onefile mode PyInstaller extracts to a temp folder and sets sys._MEIPASS.
-    # - In onedir mode there's no _MEIPASS; resources are next to the executable.
-    if getattr(sys, "frozen", False):
-        base = getattr(sys, "_MEIPASS", None)
-        if not base:
-            # one-dir build: resources live alongside the executable
-            base = os.path.dirname(sys.executable)
-        return os.path.join(base, relative_path)
-
-    # Normal (not frozen) execution: resolve relative to project root (cwd may vary).
-    # Prefer locating resources relative to the repository root (one level up from utils).
+def _dev_project_root() -> str:
     here = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.normpath(os.path.join(here, ".."))
-    candidate = os.path.join(project_root, relative_path)
-    return os.path.abspath(candidate)
+    return os.path.normpath(os.path.join(here, ".."))
+
+
+def _frozen_base_dirs():
+    """Candidate roots for bundled data files (PyInstaller onefile/onedir)."""
+    dirs = []
+    seen = set()
+
+    def add(path):
+        norm = os.path.normpath(path)
+        if norm not in seen and os.path.isdir(norm):
+            seen.add(norm)
+            dirs.append(norm)
+
+    meipass = getattr(sys, "_MEIPASS", None)
+    if meipass:
+        add(meipass)
+
+    exe_dir = os.path.dirname(os.path.abspath(sys.executable))
+    add(exe_dir)
+    add(os.path.join(exe_dir, "_internal"))
+
+    return dirs
+
+
+def iter_resource_paths(relative_path: str):
+    """Yield candidate absolute paths for a bundled resource (most likely first)."""
+    rel = relative_path.replace("/", os.sep)
+
+    if getattr(sys, "frozen", False):
+        yielded = set()
+        for base in _frozen_base_dirs():
+            candidate = os.path.normpath(os.path.join(base, rel))
+            if candidate not in yielded:
+                yielded.add(candidate)
+                yield candidate
+        return
+
+    yield os.path.abspath(os.path.join(_dev_project_root(), rel))
+
+
+def find_resource_path(relative_path: str) -> str | None:
+    """Return the first existing file path for a resource, or None."""
+    for candidate in iter_resource_paths(relative_path):
+        if os.path.isfile(candidate):
+            return candidate
+    return None
+
+
+def get_resource_path(relative_path: str) -> str:
+    """Return an absolute path to a bundled resource (best candidate)."""
+    found = find_resource_path(relative_path)
+    if found:
+        return found
+    return next(iter_resource_paths(relative_path))
 
 
 def normalize_to_absolute_path(path: str) -> str:
