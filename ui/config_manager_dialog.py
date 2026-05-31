@@ -8,6 +8,7 @@ from ui.theme import (
     BTN_TEXT_COLOR,
     BUTTON_COLOR,
     BUTTON_HOVER,
+    GLASS_BG,
     TEXT_COLOR,
     TEXT_MUTED,
 )
