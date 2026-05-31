@@ -8,17 +8,7 @@ class Runner:
 
     def run(self, student_dir: str, arguments: str, configuration, timeout: int = 10) -> StudentResult:
         student_id = os.path.basename(student_dir)
-
-        # Interpreted dillerde source dosyasını full path ile belirt
-        run_command = configuration.run_command
-        if configuration.is_interpreted and configuration.source_filename:
-            source_full = os.path.join(student_dir, configuration.source_filename)
-            # run_command içindeki source_filename'i full path ile değiştir
-            run_command = run_command.replace(
-                configuration.source_filename, f'"{source_full}"'
-            )
-
-        command = f"{run_command} {arguments}".strip()
+        command = f"{configuration.run_command} {arguments}".strip()
 
         try:
             result = subprocess.run(
