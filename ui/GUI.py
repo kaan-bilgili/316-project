@@ -2,6 +2,7 @@ import os
 
 import customtkinter as ctk
 from tkinter import ttk, messagebox
+from utils.path_utils import get_resource_path
 from ui.dialogs import LogDetailDialog
 from ui.models import SubmissionStatus, ReportEntry
 from ui.i18n import LANGUAGES, TRANSLATIONS
@@ -1042,12 +1043,7 @@ class IAECompleteGUI:
         return ACCENT_COLOR
 
     def show_help(self):
-        import os
-
-        manual_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "..", "manual.txt"
-        )
-        manual_path = os.path.normpath(manual_path)
+        manual_path = get_resource_path("manual.txt")
 
         win = ctk.CTkToplevel(self.root)
         win.title(self.tr("help_title"))

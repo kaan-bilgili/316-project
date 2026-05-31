@@ -1,14 +1,15 @@
 import sqlite3
 import os
 from typing import Optional
+from utils.path_utils import normalize_to_absolute_path
 
 
 class DatabaseHelper:
 
     def __init__(self, db_path: str):
         """Opens a connection to the SQLite database at the given path."""
-        self.db_path = db_path
-        self.conn = sqlite3.connect(db_path)
+        self.db_path = normalize_to_absolute_path(db_path)
+        self.conn = sqlite3.connect(self.db_path)
         self.conn.row_factory = sqlite3.Row  # allows accessing columns by name
         self._create_tables()
 
